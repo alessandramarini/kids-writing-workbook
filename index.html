@@ -1,26 +1,31 @@
 <!DOCTYPE html>
-<html lang="it" style="--page-width-px: 816px; --page-height-px: 1056px; --safe-margin-px: 75px; --font-scale: 1;"><head>
+<html lang="it">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KDP Kids Writing Studio | Masterpiece Edition</title>
+    <title>KDP Kids Writing Course Studio | Premium Edition</title>
     
+    <!-- External Libraries -->
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&amp;family=Nunito:wght@400;600;700;800;900&amp;family=Noto+Sans+Arabic:wght@700&amp;family=Noto+Sans+KR:wght@700&amp;family=Noto+Sans+Devanagari:wght@700&amp;family=Noto+Sans+JP:wght@700&amp;display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
     
-    <style id="dynamicPrintStyle">@media print { @page { size: 8.5in 11in; margin: 0 !important; } .page-text, .page-bleed { width: 8.5in !important; height: 11in !important; overflow: hidden !important; } }</style>
+    <!-- Premium Kids Fonts per tutte le lingue -->
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;600;800&family=M+PLUS+Rounded+1c:wght@400;700;900&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style id="dynamicPrintStyle"></style>
 
     <style>
         :root {
             --page-width-px: 816px;
             --page-height-px: 1056px;
-            --safe-margin-px: 75px; 
+            --safe-margin-px: 75px;
             --font-scale: 1;
+            --kids-font: 'Nunito', 'Baloo Bhaijaan 2', 'M PLUS Rounded 1c', sans-serif;
         }
 
         body { 
-            font-family: 'Nunito', 'Noto Sans Arabic', 'Noto Sans KR', 'Noto Sans JP', 'Noto Sans Devanagari', sans-serif; 
+            font-family: var(--kids-font); 
             background-color: #0f172a; 
             color: #f8fafc; 
             margin: 0; 
@@ -30,279 +35,249 @@
         
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #1e293b; }
-        ::-webkit-scrollbar-thumb { background: #ec4899; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #db2777; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
 
         .loader { 
-            border: 4px solid rgba(255,255,255,0.1); 
-            border-top: 4px solid #fcd34d; 
+            border: 2px solid rgba(255,255,255,0.1); 
+            border-top: 2px solid #eab308; 
             border-radius: 50%; 
-            width: 24px; height: 24px; 
+            width: 18px; height: 18px; 
             animation: spin 1s linear infinite; 
             display: inline-block; vertical-align: middle; 
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* Workspace & Toolbar */
-        #editorContainer { display: flex; flex-direction: column; flex: 1; height: 100%; background-color: #1e293b; }
+        #editorContainer { display: flex; flex-direction: column; flex: 1; height: 100%; background-color: #2c3338; }
         #toolbar { 
-            background-color: #0f172a; border-bottom: 2px solid #334155; 
-            padding: 12px 24px; display: flex; gap: 16px; align-items: center; justify-content: center; z-index: 10; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4); 
+            background-color: #1e293b; border-bottom: 1px solid #0f172a; 
+            padding: 8px 16px; display: flex; gap: 16px; align-items: center; justify-content: center; z-index: 10; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); 
         }
-        .tool-btn { 
-            background: #334155; color: #f8fafc; border: none; border-radius: 10px; 
-            padding: 8px 16px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; 
-            font-weight: 800; font-size: 14px;
-        }
-        .tool-btn:hover { background: #ec4899; color: white; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(236, 72, 153, 0.4); }
-
+        
         #editorWorkspace { 
-            background-color: #0f172a; overflow-y: auto; display: flex; flex-direction: column; align-items: center; 
+            background-color: #323639; overflow-y: auto; display: flex; flex-direction: column; align-items: center; 
             padding: 4rem 2rem; flex: 1; scroll-behavior: smooth;
         }
         
         #bookPage { 
-            width: 100%; display: flex; flex-direction: column; align-items: center; gap: 5rem; outline: none; counter-reset: pdf-page; 
+            width: 100%; display: flex; flex-direction: column; align-items: center; gap: 3.5rem; outline: none; counter-reset: pdf-page; 
         }
 
+        /* ---------------------------------------------------------
+           PAGE STRUCTURE
+        --------------------------------------------------------- */
         .page-text, .page-bleed { 
-            background-color: white; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 10px 20px rgba(0,0,0,0.4); 
+            background-color: white; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 2px 10px rgba(0,0,0,0.3); 
             width: var(--page-width-px); height: var(--page-height-px); 
             position: relative; overflow: hidden; color: #0f172a; box-sizing: border-box; flex-shrink: 0; 
-            counter-increment: pdf-page; border-radius: 2px;
+            counter-increment: pdf-page; 
         }
         
         .page-text { padding: var(--safe-margin-px); display: flex; flex-direction: column; }
         .page-bleed { padding: 0; display: flex; justify-content: center; align-items: center; border: none; }
+        .page-bleed img { width: 100%; height: 100%; object-fit: cover; }
 
         .page-text::after, .page-bleed::after { 
             content: counter(pdf-page); position: absolute; bottom: calc(var(--safe-margin-px) * 0.4); 
-            left: 0; width: 100%; text-align: center; font-family: 'Nunito', sans-serif; font-size: calc(12pt * var(--font-scale)); 
-            color: #cbd5e1; pointer-events: none; z-index: 50; font-weight: 800;
+            left: 0; width: 100%; text-align: center; font-family: var(--kids-font); font-size: calc(10pt * var(--font-scale)); 
+            font-weight: 700; pointer-events: none; z-index: 50; 
         }
-        .page-bleed::after { color: rgba(255,255,255,0.7); text-shadow: 0px 2px 4px rgba(0,0,0,0.8); }
+        .page-text::after { color: #94a3b8; }
+        .page-bleed::after { color: #ffffff; text-shadow: 0px 1px 4px rgba(0,0,0,0.9); }
 
-        .doc-title { font-family: 'Fredoka One', cursive; font-size: calc(4.5rem * var(--font-scale)); text-align: center; color: #f43f5e; line-height: 1.1; margin: 0; }
-        
-        /* Hero Page con Simbolo Premium Vettoriale (Fix per puntini) */
-        .hero-bg-img { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
-        .hero-bg-img img { width: 100%; height: 100%; object-fit: cover !important; }
-        
-        .hero-symbol-giant {
-            position: absolute; inset: 0; z-index: 2; 
-            display: flex; justify-content: center; align-items: center;
-            pointer-events: none; 
-        }
-        .hero-char-inner { 
-            font-family: 'Nunito', 'Baloo Bhaijaan 2', 'M PLUS Rounded 1c', 'Jua', 'Gothic A1', sans-serif; 
-            font-size: calc(20rem * var(--font-scale)); color: #ffffff; 
-            -webkit-text-stroke: 4px #f43f5e; /* Ridotto per non distorcere i simboli (es. puntini arabi) */
-            line-height: 1; font-weight: 800; 
-            filter: drop-shadow(0 8px 0px #be123c) drop-shadow(0 15px 25px rgba(0,0,0,0.6)); /* Aggiunto effetto 3D morbido */
-            animation: floatSymbol 3s ease-in-out infinite alternate;
-        }
-        @keyframes floatSymbol { 0% { transform: translateY(0px) scale(1); } 100% { transform: translateY(-10px) scale(1.02); } }
-
-        /* Practice Tracing Page - Righe scolastiche e stile pulito */
-        .practice-container { display: flex; flex-direction: column; flex: 1; width: 100%; background: #ffffff; position: relative; overflow: hidden; box-sizing: border-box; padding-top: 1rem;}
-        .tracing-grid-area { display: grid; grid-template-rows: repeat(5, 1fr); flex: 1; position: relative; padding-bottom: 2rem;}
-        .tracing-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); place-items: center; height: 100%; width: 100%; }
-        
-        .tracing-lines-bg { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); height: calc(6.5rem * var(--font-scale)); z-index: 1; border-top: 2px solid #60a5fa; border-bottom: 2px solid #60a5fa; pointer-events: none; display: block; }
-        .tracing-lines-bg::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); border-top: 2px dashed #f43f5e; }
-
-        .tracing-char-container { position: relative; z-index: 2; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; }
-        .tracing-char { font-family: 'Nunito', 'Baloo Bhaijaan 2', 'M PLUS Rounded 1c', 'Jua', 'Gothic A1', sans-serif; font-size: calc(6rem * var(--font-scale)); color: transparent; -webkit-text-stroke: 3px #cbd5e1; line-height: 1; font-weight: 800; letter-spacing: 0;}
-
-        /* Coloring Page - Bordo spesso pulito (Fix per puntini) */
-        .coloring-container { position: relative; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; background: #ffffff; overflow: hidden;}
-        .coloring-frame-img { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
-        .coloring-frame-img img { width: 100%; height: 100%; object-fit: cover !important; }
-        
-        .coloring-char-overlay { 
-            font-family: 'Nunito', 'Baloo Bhaijaan 2', 'M PLUS Rounded 1c', 'Jua', 'Gothic A1', sans-serif; 
-            font-size: calc(36rem * var(--font-scale)); color: transparent; 
-            -webkit-text-stroke: 8px #0f172a; /* Bordo proporzionato, non distorce */
-            position: relative; z-index: 5; 
-            line-height: 1; text-align: center; font-weight: 800;
-            pointer-events: none; 
-            filter: drop-shadow(0px 10px 0px rgba(0,0,0,0.1));
+        /* PDF Export specifics */
+        .pdf-exporting .page-text, .pdf-exporting .page-bleed {
+            box-shadow: none !important;
+            border: none !important;
+            margin: 0 !important;
+            transform: scale(1) !important;
         }
 
-        /* Memory Game Styles */
-        .memory-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); width: 100%; height: 100%; border: 4px dashed #94a3b8; gap: 0; position: relative; }
-        .memory-card { border: 2px dashed #cbd5e1; display: flex; justify-content: center; align-items: center; position: relative; padding: 15px; }
-        .memory-card-inner { width: 100%; height: 100%; border-radius: 16px; border: 8px solid; background-color: rgba(255,255,255,0.9); display: flex; justify-content: center; align-items: center; box-shadow: inset 0 0 20px rgba(0,0,0,0.05); }
-        .memory-char { font-family: 'Nunito', sans-serif; font-size: calc(4.5rem * var(--font-scale)); font-weight: 900; }
+        /* ---------------------------------------------------------
+           KIDS PREMIUM STYLES
+        --------------------------------------------------------- */
+        
+        .hero-symbol-overlay {
+            position: absolute; bottom: 5%; right: 5%; width: 250px; height: 250px;
+            background: rgba(255, 255, 255, 0.95); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 8rem; color: #ec4899; font-weight: 900;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3), inset 0 -5px 15px rgba(0,0,0,0.1);
+            border: 8px solid white; pointer-events: none; z-index: 10;
+        }
 
-        /* TOC Dynamic Columns */
-        .toc-columns { display: block; margin-top: calc(2rem * var(--font-scale)); width: 85%; margin-left: auto; margin-right: auto;}
-        .toc-2col { column-count: 2; column-gap: 4rem; }
-        .toc-3col { column-count: 3; column-gap: 3rem; }
-        .toc-item { display: flex; justify-content: space-between; align-items: baseline; padding: calc(12px * var(--font-scale)) 0; margin-bottom: calc(0.5rem * var(--font-scale)); page-break-inside: avoid; break-inside: avoid; }
-        .toc-title { font-family: 'Nunito', sans-serif; font-size: calc(16pt * var(--font-scale)); background: white; padding-right: 12px; font-weight: 900; color: #3b82f6; text-transform: uppercase;}
-        .toc-leader { flex-grow: 1; border-bottom: 3px dotted #94a3b8; position: relative; top: -6px; margin: 0 4px; }
-        .toc-page { font-family: 'Fredoka One', cursive; font-size: calc(16pt * var(--font-scale)); color: #f43f5e; background: white; padding-left: 12px; }
+        .coloring-symbol-overlay {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 25rem; color: white; font-weight: 900;
+            -webkit-text-stroke: 8px black; pointer-events: none; z-index: 10;
+        }
 
-        /* Edit Overlays */
+        .blank-watermark {
+            position: absolute; bottom: 15px; left: 0; width: 100%;
+            text-align: center; font-size: 8pt; color: #e2e8f0; font-family: var(--kids-font);
+        }
+
+        .tracing-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: minmax(120px, auto);
+            gap: 20px; width: 100%; height: 100%; padding: 20px 0;
+        }
+
+        .tracing-cell {
+            position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;
+        }
+
+        .tracing-lines {
+            position: absolute; top: 50%; left: 0; width: 100%; height: 80px; transform: translateY(-50%);
+            border-top: 2px solid #3b82f6; border-bottom: 2px solid #3b82f6; z-index: 1; pointer-events: none;
+        }
+
+        .tracing-lines::after {
+            content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 2px;
+            background: repeating-linear-gradient(to right, #ef4444, #ef4444 10px, transparent 10px, transparent 20px);
+            transform: translateY(-50%);
+        }
+
+        .tracing-char {
+            font-size: 6rem; font-weight: 700; color: transparent;
+            -webkit-text-stroke: 2px #cbd5e1; z-index: 2; position: relative;
+        }
+        .tracing-char-solid { color: #94a3b8; -webkit-text-stroke: 0; }
+
+        .memory-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr;
+            gap: 15px; width: 100%; height: 100%;
+        }
+
+        .memory-card {
+            border: 3px dashed #94a3b8; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 6rem; font-weight: 900; color: #3b82f6; position: relative; background: white;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.02);
+        }
+
+        .memory-card:nth-child(even) { color: #ec4899; }
+        .memory-card:nth-child(3n) { color: #10b981; }
+        .memory-card:nth-child(4n) { color: #f59e0b; }
+
+        .scissors-icon {
+            position: absolute; top: -12px; left: -12px; font-size: 1.5rem;
+            background: white; border-radius: 50%; padding: 2px; color: #64748b;
+        }
+
+        /* Modals & Overlays */
         .editable-image-container { position: relative; width: 100%; height: 100%; cursor: pointer; border-radius: inherit; }
-        .editable-image-container::after { content: '✎ Magia Immagine'; position: absolute; inset: 0; background: rgba(0,0,0,0.6); color: #fde047; display: flex; justify-content: center; align-items: center; font-family: 'Fredoka One', cursive; font-size: 2rem; opacity: 0; transition: opacity 0.2s; z-index: 10; backdrop-filter: blur(4px); border-radius: inherit; }
+        .editable-image-container::after { content: '✎ Magia Immagine ✨'; position: absolute; inset: 0; background: rgba(0,0,0,0.6); color: #fbbf24; display: flex; justify-content: center; align-items: center; font-weight: 900; font-size: 1.5rem; opacity: 0; transition: opacity 0.2s; z-index: 20; backdrop-filter: blur(2px); border-radius: inherit; }
         .editable-image-container:hover::after { opacity: 1; }
-
-        @media print {
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            body, html { background: white !important; margin: 0 !important; padding: 0 !important; width: 100% !important; height: auto !important; overflow: visible !important; }
-            header, .w-\[380px\], #toolbar, #toast-container, .modal { display: none !important; }
-            #editorContainer, #editorWorkspace { padding: 0 !important; margin: 0 !important; height: auto !important; overflow: visible !important; display: block !important; background: none !important; }
-            #bookPage { gap: 0 !important; display: block !important; }
-            .page-text, .page-bleed { box-shadow: none !important; border: none !important; margin: 0 !important; page-break-after: always !important; break-after: page !important; page-break-inside: avoid !important; break-inside: avoid !important; }
-            .editable-image-container::after { display: none !important; }
-            img { image-rendering: high-quality; max-width: 100%; }
-        }
-
-        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal.show { display: flex; }
-        .modal-content { background: #1e293b; border: 2px solid #475569; border-radius: 24px; width: 95%; max-width: 1200px; padding: 32px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8); max-height: 95vh; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; padding-bottom: 16px; }
-        .close-modal { cursor: pointer; color: #94a3b8; transition: 0.2s; background: #334155; border-radius: 50%; padding: 8px; }
-        .close-modal:hover { background: #ef4444; color: white; transform: rotate(90deg); }
-
-        .aplus-container { display: flex; flex-direction: column; gap: 30px; align-items: center; width: 100%; }
-        .aplus-banner { width: 970px; height: 300px; position: relative; overflow: hidden; display: flex; box-sizing: border-box; flex-shrink: 0; border-radius: 16px; max-height: 300px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);}
-        .editable-text { outline: none; padding: 4px; border-radius: 6px; transition: 0.2s; }
-        .editable-text:hover, .editable-text:focus { background: rgba(0,0,0,0.1); box-shadow: 0 0 0 2px rgba(0,0,0,0.2); }
-
-        #toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; }
-        .toast { background: #0f172a; border-left: 8px solid #3b82f6; color: white; padding: 20px 24px; border-radius: 12px; box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5); font-size: 15px; font-weight: 800; transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; align-items: center; gap: 16px; border-right: 1px solid #334155; border-top: 1px solid #334155; border-bottom: 1px solid #334155;}
+        .modal-content { background: #1e293b; border: 1px solid #334155; border-radius: 12px; width: 95%; max-width: 1200px; padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); max-height: 95vh; overflow-y: auto; }
+        
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: #1e293b; border-left: 4px solid #3b82f6; color: white; padding: 16px 24px; border-radius: 4px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); font-size: 14px; transform: translateX(120%); transition: transform 0.3s ease-out; display: flex; align-items: center; gap: 12px; font-weight: 700; }
         .toast.show { transform: translateX(0); }
         .toast.success { border-left-color: #10b981; }
-        .toast.warning { border-left-color: #f59e0b; }
+        .toast.warning { border-left-color: #eab308; }
         .toast.error { border-left-color: #ef4444; }
     </style>
-<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.z-10{z-index:10}.z-20{z-index:20}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mb-5{margin-bottom:1.25rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}.ml-4{margin-left:1rem}.mt-2{margin-top:0.5rem}.mt-4{margin-top:1rem}.block{display:block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.h-screen{height:100vh}.h-10{height:2.5rem}.h-12{height:3rem}.h-14{height:3.5rem}.h-16{height:4rem}.h-2\.5{height:0.625rem}.h-32{height:8rem}.h-4{height:1rem}.h-5{height:1.25rem}.h-6{height:1.5rem}.h-8{height:2rem}.h-full{height:100%}.w-10{width:2.5rem}.w-12{width:3rem}.w-2\.5{width:0.625rem}.w-5{width:1.25rem}.w-6{width:1.5rem}.w-8{width:2rem}.w-\[380px\]{width:380px}.w-full{width:100%}.max-w-\[200px\]{max-width:200px}.flex-1{flex:1 1 0%}.shrink-0{flex-shrink:0}@keyframes pulse{50%{opacity:.5}}.animate-pulse{animation:pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite}.cursor-pointer{cursor:pointer}.resize-none{resize:none}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rounded-2xl{border-radius:1rem}.rounded-3xl{border-radius:1.5rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-2{border-width:2px}.border-b-2{border-bottom-width:2px}.border-b-4{border-bottom-width:4px}.border-r-2{border-right-width:2px}.border-blue-400{--tw-border-opacity:1;border-color:rgb(96 165 250 / var(--tw-border-opacity, 1))}.border-blue-900\/50{border-color:rgb(30 58 138 / 0.5)}.border-emerald-700\/50{border-color:rgb(4 120 87 / 0.5)}.border-emerald-900\/50{border-color:rgb(6 78 59 / 0.5)}.border-pink-700{--tw-border-opacity:1;border-color:rgb(190 24 93 / var(--tw-border-opacity, 1))}.border-purple-400{--tw-border-opacity:1;border-color:rgb(192 132 252 / var(--tw-border-opacity, 1))}.border-purple-700\/50{border-color:rgb(126 34 206 / 0.5)}.border-red-900\/50{border-color:rgb(127 29 29 / 0.5)}.border-slate-600{--tw-border-opacity:1;border-color:rgb(71 85 105 / var(--tw-border-opacity, 1))}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.border-slate-800{--tw-border-opacity:1;border-color:rgb(30 41 59 / var(--tw-border-opacity, 1))}.border-slate-900{--tw-border-opacity:1;border-color:rgb(15 23 42 / var(--tw-border-opacity, 1))}.border-yellow-700\/50{border-color:rgb(161 98 7 / 0.5)}.border-yellow-900\/50{border-color:rgb(113 63 18 / 0.5)}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.bg-blue-600{--tw-bg-opacity:1;background-color:rgb(37 99 235 / var(--tw-bg-opacity, 1))}.bg-emerald-500{--tw-bg-opacity:1;background-color:rgb(16 185 129 / var(--tw-bg-opacity, 1))}.bg-emerald-600{--tw-bg-opacity:1;background-color:rgb(5 150 105 / var(--tw-bg-opacity, 1))}.bg-purple-600{--tw-bg-opacity:1;background-color:rgb(147 51 234 / var(--tw-bg-opacity, 1))}.bg-red-600{--tw-bg-opacity:1;background-color:rgb(220 38 38 / var(--tw-bg-opacity, 1))}.bg-red-900\/20{background-color:rgb(127 29 29 / 0.2)}.bg-slate-700{--tw-bg-opacity:1;background-color:rgb(51 65 85 / var(--tw-bg-opacity, 1))}.bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.bg-slate-800\/80{background-color:rgb(30 41 59 / 0.8)}.bg-slate-900\/50{background-color:rgb(15 23 42 / 0.5)}.bg-slate-950{--tw-bg-opacity:1;background-color:rgb(2 6 23 / var(--tw-bg-opacity, 1))}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.from-blue-600{--tw-gradient-from:#2563eb var(--tw-gradient-from-position);--tw-gradient-to:rgb(37 99 235 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-pink-400{--tw-gradient-from:#f472b6 var(--tw-gradient-from-position);--tw-gradient-to:rgb(244 114 182 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-pink-500{--tw-gradient-from:#ec4899 var(--tw-gradient-from-position);--tw-gradient-to:rgb(236 72 153 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-purple-400{--tw-gradient-to:rgb(192 132 252 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #c084fc var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-purple-500{--tw-gradient-to:rgb(168 85 247 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #a855f7 var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-blue-400{--tw-gradient-to:#60a5fa var(--tw-gradient-to-position)}.to-indigo-500{--tw-gradient-to:#6366f1 var(--tw-gradient-to-position)}.to-indigo-600{--tw-gradient-to:#4f46e5 var(--tw-gradient-to-position)}.bg-clip-text{-webkit-background-clip:text;background-clip:text}.p-3{padding:0.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.px-8{padding-left:2rem;padding-right:2rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.pb-4{padding-bottom:1rem}.text-center{text-align:center}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.font-sans{font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-\[11px\]{font-size:11px}.text-\[12px\]{font-size:12px}.text-\[13px\]{font-size:13px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-black{font-weight:900}.font-bold{font-weight:700}.uppercase{text-transform:uppercase}.tracking-widest{letter-spacing:0.1em}.text-slate-200{--tw-text-opacity:1;color:rgb(226 232 240 / var(--tw-text-opacity, 1))}.text-blue-400{--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.text-emerald-100{--tw-text-opacity:1;color:rgb(209 250 229 / var(--tw-text-opacity, 1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.text-pink-400{--tw-text-opacity:1;color:rgb(244 114 182 / var(--tw-text-opacity, 1))}.text-pink-500{--tw-text-opacity:1;color:rgb(236 72 153 / var(--tw-text-opacity, 1))}.text-purple-100{--tw-text-opacity:1;color:rgb(243 232 255 / var(--tw-text-opacity, 1))}.text-purple-400{--tw-text-opacity:1;color:rgb(192 132 252 / var(--tw-text-opacity, 1))}.text-red-400{--tw-text-opacity:1;color:rgb(248 113 113 / var(--tw-text-opacity, 1))}.text-red-500{--tw-text-opacity:1;color:rgb(239 68 68 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-transparent{color:transparent}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-yellow-100{--tw-text-opacity:1;color:rgb(254 249 195 / var(--tw-text-opacity, 1))}.text-yellow-400{--tw-text-opacity:1;color:rgb(250 204 21 / var(--tw-text-opacity, 1))}.shadow{--tw-shadow:0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_15px_rgba\(236\2c 72\2c 153\2c 0\.8\)\]{--tw-shadow:0 0 15px rgba(236,72,153,0.8);--tw-shadow-colored:0 0 15px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_8px_\#10b981\]{--tw-shadow:0 0 8px #10b981;--tw-shadow-colored:0 0 8px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_10px_25px_rgba\(219\2c 39\2c 119\2c 0\.4\)\]{--tw-shadow:0 10px 25px rgba(219,39,119,0.4);--tw-shadow-colored:0 10px 25px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_4px_15px_rgba\(147\2c 51\2c 234\2c 0\.4\)\]{--tw-shadow:0 4px 15px rgba(147,51,234,0.4);--tw-shadow-colored:0 4px 15px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_4px_15px_rgba\(59\2c 130\2c 246\2c 0\.4\)\]{--tw-shadow:0 4px 15px rgba(59,130,246,0.4);--tw-shadow-colored:0 4px 15px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[10px_0_20px_rgba\(0\2c 0\2c 0\2c 0\.3\)\]{--tw-shadow:10px 0 20px rgba(0,0,0,0.3);--tw-shadow-colored:10px 0 20px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-inner{--tw-shadow:inset 0 2px 4px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:inset 0 2px 4px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-xl{--tw-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.outline-none{outline:2px solid transparent;outline-offset:2px}.drop-shadow-md{--tw-drop-shadow:drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06));filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.hover\:-translate-y-0\.5:hover{--tw-translate-y:-0.125rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:-translate-y-1:hover{--tw-translate-y:-0.25rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:bg-blue-500:hover{--tw-bg-opacity:1;background-color:rgb(59 130 246 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-500:hover{--tw-bg-opacity:1;background-color:rgb(16 185 129 / var(--tw-bg-opacity, 1))}.hover\:bg-purple-500:hover{--tw-bg-opacity:1;background-color:rgb(168 85 247 / var(--tw-bg-opacity, 1))}.hover\:bg-red-500:hover{--tw-bg-opacity:1;background-color:rgb(239 68 68 / var(--tw-bg-opacity, 1))}.hover\:bg-red-900\/40:hover{background-color:rgb(127 29 29 / 0.4)}.hover\:bg-slate-600:hover{--tw-bg-opacity:1;background-color:rgb(71 85 105 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-700:hover{--tw-bg-opacity:1;background-color:rgb(51 65 85 / var(--tw-bg-opacity, 1))}.hover\:from-blue-500:hover{--tw-gradient-from:#3b82f6 var(--tw-gradient-from-position);--tw-gradient-to:rgb(59 130 246 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.hover\:from-pink-400:hover{--tw-gradient-from:#f472b6 var(--tw-gradient-from-position);--tw-gradient-to:rgb(244 114 182 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.hover\:via-purple-400:hover{--tw-gradient-to:rgb(192 132 252 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #c084fc var(--tw-gradient-via-position), var(--tw-gradient-to)}.hover\:to-indigo-400:hover{--tw-gradient-to:#818cf8 var(--tw-gradient-to-position)}.hover\:to-indigo-500:hover{--tw-gradient-to:#6366f1 var(--tw-gradient-to-position)}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.focus\:border-blue-500:focus{--tw-border-opacity:1;border-color:rgb(59 130 246 / var(--tw-border-opacity, 1))}.focus\:border-emerald-500:focus{--tw-border-opacity:1;border-color:rgb(16 185 129 / var(--tw-border-opacity, 1))}.focus\:border-pink-500:focus{--tw-border-opacity:1;border-color:rgb(236 72 153 / var(--tw-border-opacity, 1))}.focus\:border-purple-500:focus{--tw-border-opacity:1;border-color:rgb(168 85 247 / var(--tw-border-opacity, 1))}.focus\:border-slate-400:focus{--tw-border-opacity:1;border-color:rgb(148 163 184 / var(--tw-border-opacity, 1))}.focus\:border-yellow-500:focus{--tw-border-opacity:1;border-color:rgb(234 179 8 / var(--tw-border-opacity, 1))}.active\:translate-y-0:active{--tw-translate-y:0px;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.active\:border-b-0:active{border-bottom-width:0px}.disabled\:opacity-50:disabled{opacity:0.5}</style></head>
+</head>
 <body class="h-screen flex flex-col overflow-hidden bg-slate-900 text-slate-200">
 
-    <header class="bg-slate-900 border-b-2 border-slate-800 p-4 flex justify-between items-center z-20 shrink-0 shadow-lg">
-        <h1 class="text-2xl font-bold font-sans flex items-center gap-3" style="font-family: 'Fredoka One', cursive;">
-            <svg class="w-8 h-8 text-pink-500 drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-            <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400">Kids Writing Studio</span>
+    <header class="bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-center z-20 shrink-0 shadow-sm">
+        <h1 class="text-xl font-bold font-serif flex items-center gap-3 text-gold-400">
+            <svg class="w-6 h-6 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-orange-300 font-black tracking-wider">KDP KIDS STUDIO PRO</span>
         </h1>
-        <div class="flex items-center gap-4">
-            <div id="headerTrimLabel" class="text-xs font-black bg-slate-800 py-2.5 px-4 rounded-xl text-slate-300 border-2 border-slate-700 flex items-center gap-2 shadow-inner"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]"></span> 8.5" x 11" Bleed</div>
-            <button id="saveEpubBtn" class="bg-purple-600 hover:bg-purple-500 text-white text-sm font-black py-2.5 px-6 rounded-xl flex items-center gap-2 transition-all shadow-[0_4px_15px_rgba(147,51,234,0.4)] hover:-translate-y-0.5 border border-purple-400">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg> EPUB
-            </button>
-            <button id="savePdfBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-black py-2.5 px-6 rounded-xl flex items-center gap-2 transition-all shadow-[0_4px_15px_rgba(59,130,246,0.4)] hover:-translate-y-0.5 border border-blue-400">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Stampa PDF
+        <div class="flex items-center gap-3">
+            <div id="headerTrimLabel" class="text-[11px] font-bold bg-slate-800 py-1.5 px-3 rounded text-slate-400 border border-slate-700 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> 8.5" x 11" Bleed</div>
+            <button id="savePdfBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-2 px-4 rounded flex items-center gap-2 transition-all shadow-[0_0_10px_rgba(59,130,246,0.3)]">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Esporta PDF (KDP)
             </button>
         </div>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
-        <div class="w-[380px] bg-slate-900 border-r-2 border-slate-800 flex flex-col shrink-0 z-10 shadow-[10px_0_20px_rgba(0,0,0,0.3)]">
-            <div class="p-6 overflow-y-auto flex-1 custom-scrollbar">
+        <div class="w-[360px] bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 z-10">
+            <div class="p-5 overflow-y-auto flex-1 custom-scrollbar">
                 
-                <div class="mb-6 bg-slate-800 p-4 rounded-2xl border-2 border-blue-900/50 shadow-inner">
-                    <label class="block text-[11px] font-black text-blue-400 mb-2 uppercase tracking-widest">Gemini API Key (Modello 3.1+)</label>
-                    <input type="password" id="apiKeyInput" class="w-full p-3 bg-slate-900 border-2 border-slate-700 rounded-xl text-sm text-slate-200 outline-none focus:border-blue-500 font-mono shadow-inner" placeholder="Incolla qui la chiave API">
+                <div class="mb-4 bg-slate-800/80 p-3 rounded border border-blue-900/50">
+                    <label class="block text-[10px] font-bold text-blue-400 mb-1 uppercase tracking-wider">Gemini API Key</label>
+                    <input type="password" id="apiKeyInput" class="w-full p-2 bg-slate-900 border border-slate-700 rounded text-xs text-slate-200 outline-none focus:border-blue-500" placeholder="Inserisci la chiave API">
                 </div>
 
-                <div class="bg-slate-800/80 rounded-3xl p-6 mb-6 border-2 border-slate-700 shadow-xl">
-                    <h3 class="text-white font-black mb-5 flex items-center gap-2 text-sm uppercase tracking-widest">
-                        <svg class="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div class="bg-slate-800/50 rounded-lg p-5 mb-4 border border-slate-700/50">
+                    <h3 class="text-slate-300 font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wider">
+                        <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                         Impostazioni Libro
                     </h3>
                     
-                    <div class="mb-5">
-                        <label class="block text-xs font-black text-slate-400 mb-2 uppercase">Tema Generale (Titolo)</label>
-                        <textarea id="bookTopic" class="w-full h-14 p-3 bg-slate-900 border-2 border-slate-600 rounded-xl focus:border-pink-500 outline-none text-sm resize-none text-slate-200 font-bold" placeholder="es. 'L'Alfabeto Magico'"></textarea>
-                    </div>
-
-                    <div class="mb-5">
-                        <label class="block text-xs font-black text-slate-400 mb-2 uppercase">Lista Simboli (Vuoto = Auto-Sillabo)</label>
-                        <textarea id="customLessonList" class="w-full h-16 p-3 bg-slate-900 border-2 border-slate-600 rounded-xl focus:border-pink-500 outline-none text-sm resize-none text-slate-200 font-bold" placeholder="es. 'A, B, C, D'"></textarea>
-                    </div>
-
-                    <div class="mb-5 bg-slate-900/50 p-3 rounded-xl border border-slate-700">
-                        <label class="block text-xs font-black text-yellow-400 mb-2 uppercase">Soggetto Illustrazioni</label>
-                        <select id="visualSetting" class="w-full p-3 bg-slate-800 border-2 border-yellow-700/50 rounded-xl outline-none text-sm text-yellow-100 cursor-pointer focus:border-yellow-500 font-bold mb-3 shadow-inner">
-                            <option value="Cute dinosaurs, friendly and colorful">Dinosauri Divertenti</option>
-                            <option value="Cute woodland animals, foxes, bears, bunnies">Animali del Bosco</option>
-                            <option value="Outer space, astronauts, friendly aliens, planets" selected="">Spazio e Astronavi</option>
-                            <option value="Magical fairies, unicorns, castles, rainbows">Fate e Unicorni</option>
-                            <option value="Construction vehicles, trucks, cars, busy city">Veicoli e Costruzioni</option>
-                            <option value="Under the sea, cute fish, mermaids, ocean life">Fondo al Mare</option>
-                            <option value="custom">-- Scrivi Tema Personalizzato --</option>
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-slate-400 mb-1.5">Soggetto delle Illustrazioni</label>
+                        <select id="visualSetting" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded outline-none text-sm text-slate-200 cursor-pointer focus:ring-1 focus:ring-pink-500 font-bold">
+                            <option value="Cute Dinosaurs exploring nature">Dinosauri Esploratori</option>
+                            <option value="Magical Unicorns and rainbows">Unicorni e Arcobaleni</option>
+                            <option value="Friendly Space Aliens and planets">Spazio e Alieni</option>
+                            <option value="Cute Woodland Animals">Animali del Bosco</option>
+                            <option value="Magical Fairies in a garden">Fatine Magiche</option>
+                            <option value="Cool Construction Vehicles">Veicoli da Cantiere</option>
+                            <option value="Happy Sea Creatures underwater">Creature Marine</option>
+                            <option value="Custom">Scrivi Tema Personalizzato...</option>
                         </select>
-                        <input type="text" id="customVisualSetting" class="w-full p-3 bg-slate-800 border-2 border-yellow-700/50 rounded-xl outline-none text-sm text-yellow-100 focus:border-yellow-500 font-bold" placeholder="Es. Mostriciattoli buffi...">
-                        
-                        <label class="block text-xs font-black text-purple-400 mb-2 mt-2 uppercase">Stile Artistico (Vibe)</label>
-                        <select id="artStyle" class="w-full p-3 bg-slate-800 border-2 border-purple-700/50 rounded-xl outline-none text-sm text-purple-100 cursor-pointer focus:border-purple-500 font-bold shadow-inner">
-                            <option value="3D Pixar animation style, highly detailed, vibrant colors, magical lighting, masterpiece" selected="">Animazione 3D (Stile Pixar)</option>
-                            <option value="Studio Ghibli style, beautiful anime backgrounds, hand-drawn aesthetic, soft colors, masterpiece">Studio Ghibli (Anime morbido)</option>
-                            <option value="Classic Disney 2D animation style, nostalgic, beautiful linework, masterpiece">Classico 2D (Stile Disney)</option>
-                            <option value="Soft watercolor children's book illustration, pastel colors, dreamy, masterpiece">Acquerello Pastello</option>
-                            <option value="Flat vector art, bold colors, highly graphic, modern children's book style, masterpiece">Vettoriale Moderno Piatto</option>
-                            <option value="Kawaii style, Hello Kitty aesthetic, extremely cute, thick outlines, masterpiece">Kawaii / Chibi (Giapponese)</option>
+                        <textarea id="customVisualSetting" class="w-full h-12 p-3 mt-2 bg-slate-900 border border-slate-700 rounded focus:ring-1 focus:ring-pink-500 outline-none text-sm resize-none text-slate-200 hidden" placeholder="Scrivi il tuo tema (es. Principesse, Gatti pirati...)"></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-slate-400 mb-1.5">Stile Artistico</label>
+                        <select id="artStyle" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded outline-none text-sm text-slate-200 cursor-pointer focus:ring-1 focus:ring-purple-500 font-bold">
+                            <option value="3D Pixar animation style, highly detailed, vibrant colors, cute and expressive">Pixar / Disney 3D</option>
+                            <option value="Studio Ghibli anime style, beautiful watercolor backgrounds, magical atmosphere">Anime (Studio Ghibli)</option>
+                            <option value="Classic 2D Disney animation style, smooth lines, nostalgic and charming">Classic 2D Cartoon</option>
+                            <option value="Sanrio Hello Kitty style, flat colors, extremely cute, kawaii, bold outlines">Kawaii (Sanrio Style)</option>
+                            <option value="Soft pastel watercolor, dreamy, children's book illustration, gentle">Acquerello Morbido</option>
                         </select>
                     </div>
 
-                    <div class="mb-5">
-                        <label class="block text-xs font-black text-emerald-400 mb-2 uppercase">Lingua Base / Target</label>
-                        <select id="bookLanguage" class="w-full p-3 bg-slate-900 border-2 border-emerald-700/50 rounded-xl outline-none text-sm text-emerald-100 cursor-pointer focus:border-emerald-500 font-bold shadow-inner">
-                            <option value="English (US)" selected="">English (US)</option>
-                            <option value="Italiano">Italiano</option>
-                            <option value="Español">Español</option>
-                            <option value="Français">Français</option>
-                            <option value="Deutsch">Deutsch</option>
-                            <option value="Português">Português</option>
-                            <option value="Polski">Polski</option>
-                            <option value="Русский (Russian)">Русский (Cyrillic)</option>
-                            <option value="العربية (Arabic)">العربية (Arabic)</option>
-                            <option value="हिन्दी (Hindi)">हिन्दी (Hindi)</option>
-                            <option value="日本語 (Japanese)">日本語 (Japanese)</option>
-                            <option value="한국어 (Korean)">한국어 (Korean)</option>
-                        </select>
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-slate-400 mb-1.5">Lista Simboli (Separate da virgola)</label>
+                        <textarea id="customRecipeList" class="w-full h-16 p-3 bg-slate-900 border border-slate-700 rounded focus:ring-1 focus:ring-blue-500 outline-none text-xl resize-none text-slate-200 font-black" placeholder="A, B, C oppure 1, 2, 3"></textarea>
                     </div>
 
                     <div class="mb-2">
-                        <label class="block text-xs font-black text-slate-400 mb-2 uppercase">Gabbia Stampa</label>
-                        <select id="trimSize" class="w-full p-3 bg-slate-900 border-2 border-slate-600 rounded-xl outline-none text-sm text-slate-200 cursor-pointer focus:border-slate-400 font-bold shadow-inner">
-                            <option value="8.5x11" selected="">8.5 x 11 in. (Workbook Grande)</option>
-                            <option value="8.5x8.5">8.5 x 8.5 in. (Quadrato Bambini)</option>
+                        <label class="block text-xs font-bold text-emerald-400 mb-1.5">Gabbia KDP (Trim Size)</label>
+                        <select id="trimSize" class="w-full p-2.5 bg-slate-900 border border-emerald-700/50 rounded outline-none text-sm text-emerald-100 cursor-pointer focus:ring-1 focus:ring-emerald-500 transition-all font-bold">
+                            <option value="8.5x11" selected>8.5 x 11 in. (21.59 x 27.94 cm)</option>
+                            <option value="8.5x8.5">8.5 x 8.5 in. Quadrato</option>
+                            <option value="6x9">6 x 9 in. (15.24 x 22.86 cm)</option>
                         </select>
                     </div>
                 </div>
                 
-                <button id="btnStartAutoPilot" class="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 hover:from-pink-400 hover:via-purple-400 hover:to-indigo-400 text-white font-black py-4 rounded-2xl shadow-[0_10px_25px_rgba(219,39,119,0.4)] transition-all flex justify-center items-center gap-3 mb-6 disabled:opacity-50 text-lg hover:-translate-y-1 border-b-4 border-pink-700 active:border-b-0 active:translate-y-0" disabled="">
-                    <span id="btnStartText" class="flex items-center gap-2 hidden"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg> Genera Capolavoro</span>
-                    <span id="btnStartLoader" class="flex items-center gap-3"><div class="loader border-slate-900 border-top-white"></div> Magia in corso...</span>
+                <button id="btnStartAutoPilot" class="w-full bg-gradient-to-r from-pink-600 to-orange-500 hover:from-pink-500 hover:to-orange-400 text-white font-black py-4 rounded-lg shadow-lg transition-all flex justify-center items-center gap-2 mb-4 disabled:opacity-50 text-lg uppercase tracking-wide">
+                    <span id="btnStartText" class="flex items-center gap-2"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> Genera Capolavoro</span>
+                    <span id="btnStartLoader" class="hidden"><div class="loader border-slate-900 border-top-slate-100"></div> Creazione...</span>
                 </button>
 
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <button id="btnSaveProject" class="bg-slate-800 hover:bg-slate-700 text-blue-400 border-2 border-blue-900/50 font-black py-3 rounded-2xl shadow-lg transition-all flex flex-col justify-center items-center gap-1 text-[12px] hover:-translate-y-0.5">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg> Salva File
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <button id="btnSaveProject" class="bg-slate-800 hover:bg-slate-700 text-blue-400 border border-blue-900/50 font-bold py-2.5 rounded shadow transition-all flex flex-col justify-center items-center gap-1 text-[11px]">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg> Salva File
                     </button>
-                    <button id="btnLoadProject" class="bg-slate-800 hover:bg-slate-700 text-yellow-400 border-2 border-yellow-900/50 font-black py-3 rounded-2xl shadow-lg transition-all flex flex-col justify-center items-center gap-1 text-[12px] hover:-translate-y-0.5">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> Apri File
+                    <button id="btnLoadProject" class="bg-slate-800 hover:bg-slate-700 text-yellow-400 border border-yellow-900/50 font-bold py-2.5 rounded shadow transition-all flex flex-col justify-center items-center gap-1 text-[11px]">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> Carica File
                     </button>
                     <input type="file" id="fileLoadProject" accept=".kdp" class="hidden">
-                    <button id="btnOpenAPlusModal" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 border-2 border-emerald-900/50 font-black py-3 rounded-2xl shadow-lg transition-all flex flex-col justify-center items-center gap-1 text-[12px] hover:-translate-y-0.5">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"></path></svg> A+ Mockups
-                    </button>
-                    <button id="btnResetProject" class="bg-red-900/20 hover:bg-red-900/40 text-red-400 border-2 border-red-900/50 font-black py-3 rounded-2xl shadow-lg transition-all flex flex-col justify-center items-center gap-1 text-[12px] hover:-translate-y-0.5">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Nuovo
+                    <button id="btnResetProject" class="col-span-2 bg-red-900/20 hover:bg-red-900/40 text-red-400 border border-red-900/50 font-bold py-2.5 rounded shadow transition-all flex justify-center items-center gap-2 text-xs">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Nuova Tela Vuota
                     </button>
                 </div>
 
-                <div id="progressSection" class="flex-col gap-4 bg-slate-950 p-5 rounded-3xl border-2 border-slate-800 shadow-inner mt-4">
-                    <div class="flex justify-between text-sm mb-3 text-slate-300 font-black">
-                        <span id="progressStatus" class="truncate max-w-[200px] text-pink-400">Generazione Pagina da Colorare: Arabic Letter Ba...</span>
-                        <span id="progressCount" class="font-mono bg-slate-800 px-3 py-1 rounded-lg">2/22</span>
+                <div id="progressSection" class="flex-col gap-4 bg-slate-900 p-4 rounded border border-slate-800 shadow-inner hidden">
+                    <div class="flex justify-between text-xs mb-1 text-slate-400 font-bold">
+                        <span id="progressStatus" class="truncate max-w-[200px] text-pink-400">Inizializzazione...</span>
+                        <span id="progressCount" class="font-mono"></span>
                     </div>
-                    <div class="w-full bg-slate-800 rounded-full h-4 overflow-hidden border border-slate-700">
-                        <div id="progressBar" class="bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 h-full rounded-full transition-all duration-300 shadow-[0_0_15px_rgba(236,72,153,0.8)]" style="width: 4.54545%;"></div>
+                    <div class="w-full bg-slate-800 rounded-full h-2">
+                        <div id="progressBar" class="bg-gradient-to-r from-pink-500 to-orange-400 h-2 rounded-full transition-all duration-300" style="width: 0%;"></div>
                     </div>
                 </div>
             </div>
@@ -310,208 +285,102 @@
 
         <div id="editorContainer">
             <div id="toolbar">
-                <button class="tool-btn" title="Riduci Font" onclick="adjustFontSize(-1)"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4"></path></svg> A-</button>
-                <button class="tool-btn" title="Aumenta Font" onclick="adjustFontSize(1)"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg> A+</button>
-                <div class="text-[13px] text-slate-400 font-black ml-4 bg-slate-800 px-4 py-2 rounded-lg border border-slate-700">Clicca su qualsiasi immagine per applicare la Magia IA ✨</div>
+                <div class="text-xs text-slate-400 font-bold ml-4">Clicca su qualsiasi immagine per applicare la Magia IA ✨</div>
             </div>
 
             <div id="editorWorkspace">
-                <div id="bookPage" contenteditable="true" spellcheck="false" dir="auto">
-                <div class="page-text" style="justify-content: center; align-items: center; background: #ffffff;" id="welcomePlaceholder" dir="auto">
-                    <div class="title-page-wrap" style="background: #f8fafc; border: 16px solid #e2e8f0; border-radius: 80px; margin: 2rem; padding: 5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; height: calc(100% - 4rem); width: calc(100% - 4rem); box-sizing: border-box; box-shadow: inset 0 0 40px rgba(0,0,0,0.02), 0 20px 40px rgba(0,0,0,0.05);">
-                        <h1 class="doc-title" style="font-size: calc(6rem * var(--font-scale)); color: #3b82f6; text-shadow: 4px 4px 0px #bfdbfe;">arabic</h1>
-                        <div style="width: 100px; height: 8px; background: #fb7185; border-radius: 4px; margin: 3rem 0;"></div>
-                        <p style="font-family: 'Nunito', sans-serif; background: #fb7185; color: white; padding: 12px 40px; border-radius: 40px; font-size: calc(18pt * var(--font-scale)); margin-top: 10px; font-weight: 900; outline: none; text-transform: uppercase; letter-spacing: 4px; box-shadow: 0 10px 20px rgba(251, 113, 133, 0.3);">Premium Edition</p>
+                <div id="bookPage" contenteditable="false" spellcheck="false">
+                    <div class="page-text" style="justify-content: center; align-items: center; background: #f8fafc;" id="welcomePlaceholder">
+                        <h1 style="font-family: var(--kids-font); color: #cbd5e1; font-weight: 900; font-size: 2rem;">Premi "Genera Capolavoro"</h1>
                     </div>
                 </div>
-            <div class="page-text" style="justify-content: center; align-items: center; background: #ffffff;" dir="auto">
-                <div style="border: 16px solid #f1f5f9; border-radius: 80px; margin: 2rem; padding: 4rem; display: flex; flex-direction: column; align-items: center; justify-content: center; height: calc(100% - 4rem); width: calc(100% - 4rem); box-sizing: border-box;">
-                    <h1 class="doc-h1 lbl-materials" style="font-family: 'Fredoka One', cursive; font-size: calc(4.5rem * var(--font-scale)); margin-bottom: 5rem; color: #0f172a; text-align: center;">My Magical Tools!</h1>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; width: 90%; max-width: 800px;">
-                        <div style="background: #f0fdf4; border: 4px solid #bbf7d0; border-radius: 40px; padding: 40px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.03);">
-                            <div style="font-size: 6rem; margin-bottom: 20px; line-height: 1; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));">✏️</div>
-                            <h3 class="lbl-matPencil" style="font-family: 'Nunito', sans-serif; font-weight: 900; color: #166534; font-size: 2.2rem; text-transform: uppercase;">Pencil</h3>
-                        </div>
-                        <div style="background: #fef2f2; border: 4px solid #fecaca; border-radius: 40px; padding: 40px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.03);">
-                            <div style="font-size: 6rem; margin-bottom: 20px; line-height: 1; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));">🧽</div>
-                            <h3 class="lbl-matEraser" style="font-family: 'Nunito', sans-serif; font-weight: 900; color: #991b1b; font-size: 2.2rem; text-transform: uppercase;">Eraser</h3>
-                        </div>
-                        <div style="background: #eff6ff; border: 4px solid #bfdbfe; border-radius: 40px; padding: 40px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.03);">
-                            <div style="font-size: 6rem; margin-bottom: 20px; line-height: 1; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));">🖍️</div>
-                            <h3 class="lbl-matMarkers" style="font-family: 'Nunito', sans-serif; font-weight: 900; color: #1e3a8a; font-size: 2.2rem; text-transform: uppercase;">Markers</h3>
-                        </div>
-                        <div style="background: #fdf4ff; border: 4px solid #fbcfe8; border-radius: 40px; padding: 40px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.03);">
-                            <div style="font-size: 6rem; margin-bottom: 20px; line-height: 1; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));">🎨</div>
-                            <h3 class="lbl-matCrayons" style="font-family: 'Nunito', sans-serif; font-weight: 900; color: #86198f; font-size: 2.2rem; text-transform: uppercase;">Crayons</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-                            <div class="page-bleed lesson-block" data-recipe-id="0" dir="auto">
-                                <div class="hero-bg-img"><div class="editable-image-container" data-prompt="Masterpiece children's book illustration, gorgeous full-page bleed artwork, flawless composition, highly detailed, vibrant colors, magical lighting. Theme: &quot;spazio, ufo e alieni divertenti&quot;. Style: &quot;3D Pixar animation style, highly detailed, vibrant colors, magical lighting, masterpiece&quot;. IMPORTANT: Leave the exact center completely open and uncluttered for a prominent symbol overlay. NO TEXT. NO LETTERS. NO WORDS." onclick="openRegenModal(this)"><img src="blob:https://39w0fdqxqp3aweutck6plgdxk4izfx5z6nrskguytn8syrfua8-h985969333.scf.usercontent.goog/b57de613-1bf2-41a4-9be1-ef9db002b47d" alt="Lesson Hero"></div></div>
-                                <div class="hero-symbol-giant">
-                                    <span class="hero-char-inner">ا</span>
-                                </div>
-                            </div>
-                        
-                        <div class="page-text lesson-block practice-container" data-recipe-id="0" dir="auto">
-                            <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 3rem; gap: 2rem;">
-                                <div style="width: 60px; height: 6px; background: #cbd5e1; border-radius: 3px;"></div>
-                                <div style="font-family: 'Fredoka One', cursive; font-size: calc(3.5rem * var(--font-scale)); color: #3b82f6; text-transform: uppercase; letter-spacing: 2px;">ا</div>
-                                <div style="width: 60px; height: 6px; background: #cbd5e1; border-radius: 3px;"></div>
-                            </div>
-                            <div class="tracing-grid-area">
-                        
-                                <div class="tracing-row">
-                                    <div class="tracing-lines-bg"></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div></div>
-                                <div class="tracing-row">
-                                    <div class="tracing-lines-bg"></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div></div>
-                                <div class="tracing-row">
-                                    <div class="tracing-lines-bg"></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div></div>
-                                <div class="tracing-row">
-                                    <div class="tracing-lines-bg"></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div></div>
-                                <div class="tracing-row">
-                                    <div class="tracing-lines-bg"></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div><div class="tracing-char-container"><span class="tracing-char">ا</span></div></div></div></div>
-                        <div class="page-bleed lesson-block" data-recipe-id="0" dir="auto">
-                            <div class="coloring-container">
-                                <div class="coloring-frame-img"><div class="editable-image-container" data-prompt="Extremely simple, minimalist children's coloring page border, very basic thick black outlines, lots of white empty space, easy to color for toddlers, unshaded flat line art themed: &quot;spazio, ufo e alieni divertenti&quot;. CRITICAL: Leave the entire center completely blank and pure white. ONLY draw very simple, large shapes on the extreme edges. NO TEXT. NO SHADING. NO COMPLEX DETAILS." onclick="openRegenModal(this)"><img src="blob:https://39w0fdqxqp3aweutck6plgdxk4izfx5z6nrskguytn8syrfua8-h985969333.scf.usercontent.goog/5b629a9d-f167-4238-802c-b8f323fcef87" alt="Coloring Frame"></div></div>
-                                <div class="coloring-char-overlay">ا</div>
-                            </div>
-                        </div>
-                        <div class="page-text lesson-block" data-recipe-id="0" dir="auto" style="justify-content: center; align-items: center; position: relative; background: #ffffff;">
-                            <span class="lbl-blankPage" style="position: absolute; bottom: calc(var(--safe-margin-px) * 0.8); font-size: 8pt; color: #e2e8f0; text-align: center; width: 80%; font-family: 'Nunito', sans-serif;">This page is intentionally left blank to protect your masterpiece.</span>
-                        </div>
-                            <div class="page-bleed lesson-block" data-recipe-id="1" dir="auto">
-                                <div class="hero-bg-img"><div class="editable-image-container" data-prompt="Masterpiece children's book illustration, gorgeous full-page bleed artwork, flawless composition, highly detailed, vibrant colors, magical lighting. Theme: &quot;spazio, ufo e alieni divertenti&quot;. Style: &quot;3D Pixar animation style, highly detailed, vibrant colors, magical lighting, masterpiece&quot;. IMPORTANT: Leave the exact center completely open and uncluttered for a prominent symbol overlay. NO TEXT. NO LETTERS. NO WORDS." onclick="openRegenModal(this)"><img src="blob:https://39w0fdqxqp3aweutck6plgdxk4izfx5z6nrskguytn8syrfua8-h985969333.scf.usercontent.goog/7b2fb6ed-b126-4abb-a9bd-561252ed4bb0" alt="Lesson Hero"></div></div>
-                                <div class="hero-symbol-giant">
-                                    <span class="hero-char-inner">ب</span>
-                                </div>
-                            </div>
-                        
-                        <div class="page-text lesson-block practice-container" data-recipe-id="1" dir="auto">
-                            <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 3rem; gap: 2rem;">
-                                <div style="width: 60px; height: 6px; background: #cbd5e1; border-radius: 3px;"></div>
-                                <div style="font-family: 'Fredoka One', cursive; font-size: calc(3.5rem * var(--font-scale)); color: #3b82f6; text-transform: uppercase; letter-spacing: 2px;">ب</div>
-                                <div style="width: 60px; height: 6px; background: #cbd5e1; border-radius: 3px;"></div>
-                            </div>
-                            <div class="tracing-grid-area">
-                        
-                                <div class="tracing-row">
-                                    <div class="tracing-lines-bg"></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div></div>
-                                <div class="tracing-row">
-                                    <div class="tracing-lines-bg"></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div></div>
-                                <div class="tracing-row">
-                                    <div class="tracing-lines-bg"></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div></div>
-                                <div class="tracing-row">
-                                    <div class="tracing-lines-bg"></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div></div>
-                                <div class="tracing-row">
-                                    <div class="tracing-lines-bg"></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div><div class="tracing-char-container"><span class="tracing-char">ب</span></div></div></div></div></div>
             </div>
         </div>
     </div>
 
-    <!-- Image Regeneration Modal -->
+    <!-- Modals -->
     <div id="regenModal" class="modal">
         <div class="modal-content" style="max-width: 500px;">
-            <h2 class="text-3xl font-black text-white font-sans flex items-center gap-3"><svg class="w-10 h-10 text-fde047" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg> Magia Immagine</h2>
-            <p class="text-base text-slate-300 mb-2 font-bold">Cosa vuoi cambiare? Scrivi un dettaglio o lascia vuoto per generare una nuova magia.</p>
-            <textarea id="regenPrompt" class="w-full h-32 p-4 bg-slate-900 border-2 border-slate-600 rounded-2xl text-base text-slate-200 outline-none resize-none focus:border-fde047 shadow-inner"></textarea>
-            <div class="flex justify-end gap-4 mt-4">
-                <button id="closeRegenModal" class="px-6 py-3 text-slate-300 font-black hover:text-white hover:bg-slate-700 rounded-xl transition">Annulla</button>
-                <button id="btnConfirmRegen" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black py-3 px-8 rounded-xl flex items-center gap-2 shadow-lg hover:-translate-y-1 transition-all">
-                    <span id="btnRegenText">Applica Magia</span><div id="btnRegenLoader" class="loader hidden border-top-white"></div>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- A+ Banners Modal -->
-    <div id="aplusModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="text-3xl font-black text-white flex items-center gap-3"><svg class="w-10 h-10 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"></path></svg> Amazon A+ Banners</h2>
-                <div class="flex gap-4 items-center">
-                    <button id="btnRegenerateAPlus" class="bg-slate-700 hover:bg-slate-600 text-white text-base font-black px-6 py-3 rounded-xl transition-all flex items-center gap-2 shadow hover:-translate-y-0.5">
-                        <span id="btnRegenAPlusText">Rigenera Copy Testi</span><div id="btnRegenAPlusLoader" class="loader hidden"></div>
-                    </button>
-                    <button id="btnDownloadAPlus" class="bg-emerald-600 hover:bg-emerald-500 text-white text-base font-black px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 hover:-translate-y-0.5 transition-all">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Scarica (x3)
-                    </button>
-                    <svg class="w-10 h-10 close-modal ml-4" id="closeAPlusModal" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </div>
-            </div>
-            <p class="text-base font-bold text-slate-400 mb-4 text-center mt-2">Mockup 3D perfetti a 970x300px per la tua pagina prodotto KDP. Modifica il testo cliccandolo.</p>
-            <div class="aplus-container overflow-y-auto pb-4" id="aplusBannersContainer"></div>
-        </div>
-    </div>
-
-    <!-- Reset Confirm Modal -->
-    <div id="resetConfirmModal" class="modal">
-        <div class="modal-content" style="max-width: 450px; text-align: center; border-color: #ef4444;">
-            <h2 class="text-3xl font-black text-red-500 mb-4 flex justify-center items-center gap-3">
-                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg> Distruggere?
+            <h2 class="text-xl font-black text-white flex items-center gap-2">
+                <svg class="w-6 h-6 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                Magia Immagine
             </h2>
-            <p class="text-lg font-bold text-slate-300 mb-8">Vuoi davvero azzerare l'intero quaderno? Tutte le immagini generate andranno perse per sempre!</p>
-            <div class="flex justify-center gap-5">
-                <button id="btnCancelReset" class="px-8 py-3 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition font-black text-lg">Annulla</button>
-                <button id="btnConfirmReset" class="bg-red-600 hover:bg-red-500 text-white font-black py-3 px-8 rounded-xl shadow-lg flex items-center gap-2 text-lg hover:-translate-y-1 transition-all">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Conferma Reset
+            <p class="text-xs text-slate-400 mb-2">Scrivi come vuoi modificare l'immagine (es. "Fai il dinosauro rosso", "Rimuovi lo sfondo").</p>
+            <textarea id="regenPrompt" class="w-full h-24 p-3 bg-slate-900 border border-slate-700 rounded text-sm text-slate-200 outline-none resize-none focus:border-pink-500 font-bold"></textarea>
+            <div class="flex justify-end gap-3 mt-4">
+                <button id="closeRegenModal" class="px-4 py-2 text-slate-400 hover:text-white transition font-bold">Annulla</button>
+                <button id="btnConfirmRegen" class="bg-pink-600 hover:bg-pink-500 text-white font-black py-2 px-6 rounded-lg flex items-center gap-2 shadow-lg">
+                    <span id="btnRegenText">Applica Magia</span><div id="btnRegenLoader" class="loader hidden"></div>
                 </button>
             </div>
+        </div>
+    </div>
+
+    <div id="resetConfirmModal" class="modal">
+        <div class="modal-content" style="max-width: 400px; text-align: center; border-color: #7f1d1d;">
+            <h2 class="text-xl font-black text-red-400 mb-2 flex justify-center items-center gap-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg> Attenzione!
+            </h2>
+            <p class="text-sm text-slate-300 mb-6 font-bold">Sei sicuro di voler azzerare l'intero progetto? Tutte le pagine andranno perse irreversibilmente.</p>
+            <div class="flex justify-center gap-3">
+                <button id="btnCancelReset" class="px-5 py-2.5 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition font-bold text-sm">Annulla</button>
+                <button id="btnConfirmReset" class="bg-red-600 hover:bg-red-500 text-white font-black py-2.5 px-5 rounded shadow flex items-center gap-2 text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Azzera Tutto
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Generation Modal (New) -->
+    <div id="pdfProgressModal" class="modal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <h2 class="text-xl font-black text-blue-400 mb-4 flex justify-center items-center gap-2">
+                <div class="loader"></div> Generazione PDF KDP...
+            </h2>
+            <p class="text-sm text-slate-300 mb-2 font-bold" id="pdfProgressText">Preparazione file (Pagina 0/0)...</p>
+            <div class="w-full bg-slate-800 rounded-full h-2 mb-2">
+                <div id="pdfProgressBar" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%;"></div>
+            </div>
+            <p class="text-[10px] text-slate-500">Non chiudere questa finestra. L'operazione richiede elaborazione nativa ad alta risoluzione.</p>
         </div>
     </div>
 
     <div id="toast-container"></div>
 
     <script>
+        const windowJsPDF = window.jspdf.jsPDF;
+
         const DOM = {
             btnStart: document.getElementById('btnStartAutoPilot'), btnText: document.getElementById('btnStartText'), btnLoader: document.getElementById('btnStartLoader'),
-            topicInput: document.getElementById('bookTopic'), languageInput: document.getElementById('bookLanguage'), trimSize: document.getElementById('trimSize'),
+            customRecipeList: document.getElementById('customRecipeList'), visualSetting: document.getElementById('visualSetting'), customVisualSetting: document.getElementById('customVisualSetting'), artStyle: document.getElementById('artStyle'), trimSize: document.getElementById('trimSize'),
             bookPage: document.getElementById('bookPage'), apiKeyInput: document.getElementById('apiKeyInput'),
-            customLessonList: document.getElementById('customLessonList'), visualSetting: document.getElementById('visualSetting'), customVisualSetting: document.getElementById('customVisualSetting'), artStyle: document.getElementById('artStyle'),
-            savePdfBtn: document.getElementById('savePdfBtn'), saveEpubBtn: document.getElementById('saveEpubBtn'), 
+            savePdfBtn: document.getElementById('savePdfBtn'),
             btnSaveProject: document.getElementById('btnSaveProject'), btnLoadProject: document.getElementById('btnLoadProject'), fileLoadProject: document.getElementById('fileLoadProject'),
             progressSection: document.getElementById('progressSection'), progressStatus: document.getElementById('progressStatus'), progressCount: document.getElementById('progressCount'), progressBar: document.getElementById('progressBar'),
             toastContainer: document.getElementById('toast-container'),
             regenModal: document.getElementById('regenModal'), closeRegenModal: document.getElementById('closeRegenModal'), btnConfirmRegen: document.getElementById('btnConfirmRegen'), regenPrompt: document.getElementById('regenPrompt'), btnRegenText: document.getElementById('btnRegenText'), btnRegenLoader: document.getElementById('btnRegenLoader'),
-            btnOpenAPlusModal: document.getElementById('btnOpenAPlusModal'), aplusModal: document.getElementById('aplusModal'), closeAPlusModal: document.getElementById('closeAPlusModal'),
-            btnRegenerateAPlus: document.getElementById('btnRegenerateAPlus'), btnRegenAPlusText: document.getElementById('btnRegenAPlusText'), btnRegenAPlusLoader: document.getElementById('btnRegenAPlusLoader'), btnDownloadAPlus: document.getElementById('btnDownloadAPlus'), aplusBannersContainer: document.getElementById('aplusBannersContainer'),
-            btnResetProject: document.getElementById('btnResetProject'), resetConfirmModal: document.getElementById('resetConfirmModal'), btnCancelReset: document.getElementById('btnCancelReset'), btnConfirmReset: document.getElementById('btnConfirmReset')
+            btnResetProject: document.getElementById('btnResetProject'), resetConfirmModal: document.getElementById('resetConfirmModal'), btnCancelReset: document.getElementById('btnCancelReset'), btnConfirmReset: document.getElementById('btnConfirmReset'),
+            pdfProgressModal: document.getElementById('pdfProgressModal'), pdfProgressText: document.getElementById('pdfProgressText'), pdfProgressBar: document.getElementById('pdfProgressBar')
         };
 
         const getAPIKey = () => DOM.apiKeyInput.value.trim() || "";
-        let generatedImages = [];
-        let imageToRegenerate = null, basePromptForRegen = "";
-        let globalTocEntries = [];
+        
+        // --- NEW: STATE MANAGEMENT ---
+        let bookState = []; // Mantiene tutti i dati della pagina invece di affidarsi al DOM
+        let imageToRegenerateId = null;
 
         DOM.visualSetting.addEventListener('change', (e) => {
-            if (e.target.value === 'custom') { DOM.customVisualSetting.classList.remove('hidden'); } 
-            else { DOM.customVisualSetting.classList.add('hidden'); }
+            if (e.target.value === 'Custom') DOM.customVisualSetting.classList.remove('hidden');
+            else DOM.customVisualSetting.classList.add('hidden');
         });
-
-        const i18n = {
-            "English (US)": { toc: "Index", materials: "My Magical Tools!", matPencil: "Pencil", matEraser: "Eraser", matMarkers: "Markers", matCrayons: "Crayons", practice: "Let's Practice!", blankPage: "This page is intentionally left blank to protect your masterpiece.", memoryTitle: "Memory Game!" },
-            "Italiano": { toc: "Indice", materials: "I Miei Strumenti Magici!", matPencil: "Matita", matEraser: "Gomma", matMarkers: "Pennarelli", matCrayons: "Colori a Cera", practice: "Esercitiamoci!", blankPage: "Questa pagina è lasciata intenzionalmente bianca per proteggere il tuo capolavoro.", memoryTitle: "Gioco Memory!" },
-            "Español": { toc: "Índice", materials: "¡Mis Herramientas Mágicas!", matPencil: "Lápiz", matEraser: "Goma", matMarkers: "Rotuladores", matCrayons: "Crayones", practice: "¡A Practicar!", blankPage: "Esta página se deja en blanco intencionalmente para proteger tu obra de arte.", memoryTitle: "¡Juego de Memoria!" },
-            "Français": { toc: "Index", materials: "Mes Outils Magiques !", matPencil: "Crayon", matEraser: "Gomme", matMarkers: "Marqueurs", matCrayons: "Craies", practice: "Pratiquons !", blankPage: "Cette page est intentionnellement laissée blanche pour protéger ton chef-d'œuvre.", memoryTitle: "Jeu de Mémoire !" },
-            "Deutsch": { toc: "Inhalt", materials: "Meine Magischen Werkzeuge!", matPencil: "Bleistift", matEraser: "Radiergummi", matMarkers: "Filzstifte", matCrayons: "Wachsmalstifte", practice: "Lass uns üben!", blankPage: "Diese Seite bleibt absichtlich leer, um dein Meisterwerk zu schützen.", memoryTitle: "Memory-Spiel!" },
-            "Português": { toc: "Índice", materials: "Minhas Ferramentas Mágicas!", matPencil: "Lápis", matEraser: "Borracha", matMarkers: "Marcadores", matCrayons: "Giz de Cera", practice: "Vamos Praticar!", blankPage: "Esta página foi intencionalmente deixada em branco para proteger a sua obra de arte.", memoryTitle: "Jogo da Memória!" },
-            "Polski": { toc: "Indeks", materials: "Moje Magiczne Narzędzia!", matPencil: "Ołówek", matEraser: "Gumka", matMarkers: "Pisaki", matCrayons: "Kredki", practice: "Poćwiczmy!", blankPage: "Ta strona została celowo pusta, aby chronić twoje arcydzieło.", memoryTitle: "Gra Memory!" },
-            "Русский (Russian)": { toc: "Оглавление", materials: "Волшебные Инструменты!", matPencil: "Карандаш", matEraser: "Ластик", matMarkers: "Фломастеры", matCrayons: "Мелки", practice: "Попрактикуемся!", blankPage: "Эта страница намеренно оставлена пустой, чтобы защитить ваш шедевр.", memoryTitle: "Игра Мемори!" },
-            "العربية (Arabic)": { toc: "فهرس", materials: "أدواتي السحرية!", matPencil: "قلم رصاص", matEraser: "ممحاة", matMarkers: "أقلام تلوين", matCrayons: "ألوان شمعية", practice: "دعونا نتدرب!", blankPage: "تُركت هذه الصفحة فارغة عن قصد لحماية تحفتك الفنية.", memoryTitle: "لعبة الذاكرة!" },
-            "हिन्दी (Hindi)": { toc: "सूचकांक", materials: "जादुई उपकरण!", matPencil: "पेंसिल", matEraser: "रबर", matMarkers: "मार्कर", matCrayons: "क्रेयॉन", practice: "अभ्यास करें!", blankPage: "यह पृष्ठ आपकी उत्कृष्ट कृति की रक्षा के लिए जानबूझकर खाली छोड़ दिया गया है।", memoryTitle: "मेमोरी गेम!" },
-            "日本語 (Japanese)": { toc: "目次", materials: "魔法の道具！", matPencil: "鉛筆", matEraser: "消しゴム", matMarkers: "マーカー", matCrayons: "クレヨン", practice: "練習しよう！", blankPage: "あなたの傑作を守るため、このページは意図的に空白にしています。", memoryTitle: "メモリーゲーム！" },
-            "한국어 (Korean)": { toc: "목차", materials: "마법 도구들!", matPencil: "연필", matEraser: "지우개", matMarkers: "마커", matCrayons: "크레용", practice: "연습해 볼까요!", blankPage: "여러분의 걸작을 보호하기 위해 이 페이지는 의도적으로 비워 두었습니다.", memoryTitle: "메모리 게임!" }
-        };
 
         function showToast(message, type = 'info') {
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            let icon = type === 'success' ? '<svg class="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : 
-                       type === 'warning' ? '<svg class="w-7 h-7 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>' :
-                       type === 'error' ? '<svg class="w-7 h-7 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>' : 
-                       '<svg class="w-7 h-7 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+            let icon = type === 'success' ? '<svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>' : 
+                       type === 'warning' ? '<svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>' :
+                       type === 'error' ? '<svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>' : 
+                       '<svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
             toast.innerHTML = `${icon} <span>${message}</span>`;
             DOM.toastContainer.appendChild(toast);
             setTimeout(() => toast.classList.add('show'), 10);
@@ -522,63 +391,39 @@
             DOM.progressStatus.textContent = msg;
             if(percent !== null) DOM.progressBar.style.width = `${percent}%`;
             if(current !== null && total !== null) DOM.progressCount.textContent = `${current}/${total}`;
+            else DOM.progressCount.textContent = "";
         }
         
         const delay = ms => new Promise(res => setTimeout(res, ms));
 
-        function extractJSON(text) {
-            try {
-                let s = text.indexOf('{'); let b = text.indexOf('[');
-                let start = (s !== -1 && b !== -1) ? Math.min(s, b) : (s !== -1 ? s : b);
-                if (start !== -1) {
-                    let endChar = text[start] === '{' ? '}' : ']';
-                    let end = text.lastIndexOf(endChar);
-                    if (end !== -1) return JSON.parse(text.substring(start, end + 1));
-                }
-                return JSON.parse(text); 
-            } catch(e) { throw new Error("JSON format error from AI."); }
-        }
-
-        const fetchWithRetry = async (urlGenerator, optionsGenerator, maxRetries = 5) => {
+        const fetchWithRetry = async (urlGenerator, optionsGenerator, maxRetries = 3) => {
             for (let retries = 0; retries < maxRetries; retries++) {
                 try {
                     const response = await fetch(urlGenerator(), optionsGenerator());
                     if (!response.ok) {
                         const err = await response.json().catch(()=>({}));
-                        if (response.status === 400 && err.error?.message?.includes("API key not valid")) throw new Error("Invalid API Key in sidebar.");
+                        if (response.status === 400 && err.error?.message?.includes("API key not valid")) throw new Error("API Key non valida.");
                         if (response.status === 429 || response.status === 500) throw new Error("Rate limit / Server Error");
                         throw new Error(`HTTP ${response.status}`);
                     }
                     return response;
                 } catch (error) {
                     if(error.message.includes("API Key") || retries === maxRetries - 1) throw error;
-                    updateStatus(`API Limit. Retrying in ${5 * (retries + 1)}s...`);
-                    await delay(5000 * (retries + 1)); 
+                    // Exponential backoff
+                    const waitTime = 4000 * (retries + 1);
+                    updateStatus(`Attendere limite API... (${retries+1}/${maxRetries})`);
+                    await delay(waitTime); 
                 }
             }
         };
 
-        async function callGemini(prompt, systemInstruction) {
-            const urlGen = () => `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${getAPIKey()}`;
-            const optGen = () => ({
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                    generationConfig: { temperature: 0.7, responseMimeType: "application/json" },
-                    systemInstruction: { parts: [{ text: systemInstruction }] }
-                })
-            });
-            const response = await fetchWithRetry(urlGen, optGen);
-            const data = await response.json();
-            return extractJSON(data.candidates[0].content.parts[0].text);
-        }
-
-        async function callGeminiImage(prompt, aspect, maxWidth = 1000, quality = 0.85) {
+        async function callGeminiImage(prompt, aspect, maxWidth = 1500, quality = 0.85) {
+            const safetyAppend = ". Masterpiece, flawless composition, highly detailed, visually stunning. NO TEXT. NO LETTERS. NO WATERMARK.";
             const urlGen = () => `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${getAPIKey()}`;
             const optGen = () => ({
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ role: 'user', parts: [{ text: prompt }] }], 
+                    contents: [{ role: 'user', parts: [{ text: prompt + safetyAppend }] }], 
                     generationConfig: { responseModalities: ['IMAGE'], imageConfig: { aspectRatio: aspect } }
                 })
             });
@@ -607,12 +452,35 @@
             });
         }
 
+        async function blobUrlToBase64(blobUrl) {
+            try {
+                const response = await fetch(blobUrl);
+                const blob = await response.blob();
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+            } catch(e) { return blobUrl; } // Fallback if it's already a base64 or external url
+        }
+
+        // --- NEW: MEMORY CLEANUP ---
+        function cleanupMemory() {
+            bookState.forEach(page => {
+                if (page.imageUrl && page.imageUrl.startsWith('blob:')) {
+                    URL.revokeObjectURL(page.imageUrl);
+                }
+            });
+            bookState = [];
+            DOM.bookPage.innerHTML = '';
+        }
+
         function applyLayoutEngine() {
             const val = DOM.trimSize.value;
-            const [wStr, hStr] = val.split('x');
-            const widthIn = parseFloat(wStr); 
-            const heightIn = parseFloat(hStr);
-
+            let widthIn = 8.5, heightIn = 11;
+            if(val === '8.5x8.5') { widthIn = 8.5; heightIn = 8.5; }
+            else if(val === '6x9') { widthIn = 6; heightIn = 9; }
+            
             let fontScale = heightIn >= 10 ? 1.0 : (widthIn <= 6 ? 0.75 : 0.85);
 
             document.documentElement.style.setProperty('--page-width-px', `${widthIn * 96}px`);
@@ -620,47 +488,84 @@
             document.documentElement.style.setProperty('--font-scale', fontScale);
 
             document.getElementById('dynamicPrintStyle').innerHTML = `@media print { @page { size: ${widthIn}in ${heightIn}in; margin: 0 !important; } .page-text, .page-bleed { width: ${widthIn}in !important; height: ${heightIn}in !important; overflow: hidden !important; } }`;
-            document.getElementById('headerTrimLabel').innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]"></span> ${widthIn}" x ${heightIn}" Bleed`;
+            document.getElementById('headerTrimLabel').innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> ${widthIn}" x ${heightIn}" Bleed`;
             
-            return { widthIn, heightIn, isLarge: heightIn >= 10 };
+            return { widthIn, heightIn, aspect: widthIn > heightIn ? '16:9' : (widthIn === heightIn ? '1:1' : '3:4') };
         }
         DOM.trimSize.addEventListener('change', applyLayoutEngine);
 
-        function adjustFontSize(delta) {
-            const selection = window.getSelection();
-            if (!selection.rangeCount || selection.isCollapsed) return;
-            let node = selection.focusNode;
-            if (node.nodeType === 3) node = node.parentElement;
-            if (node.id === 'bookPage' || node.classList.contains('page-text')) {
-                document.execCommand('fontSize', false, '7'); 
-                const spans = document.getElementsByTagName("font");
-                for(let span of spans) { if(span.size === "7") { span.removeAttribute("size"); span.style.fontSize = "18pt"; } }
+        function wrapImageForEdit(imgUrl, originalPrompt, pageId, fallbackAlt) {
+            if(!imgUrl) return '';
+            return `<div class="editable-image-container" onclick="openRegenModal('${pageId}')"><img src="${imgUrl}" alt="${fallbackAlt}" style="width:100%; height:100%; object-fit:cover;" /></div>`;
+        }
+
+        function renderSinglePageToDOM(page) {
+            let html = '';
+            if (page.type === 'hero' || page.type === 'cover' || page.type === 'tools' || page.type === 'pattern' || page.type === 'coloring') {
+                let overlay = '';
+                if(page.type === 'hero' && page.symbol) overlay = `<div class="hero-symbol-overlay">${page.symbol}</div>`;
+                if(page.type === 'coloring' && page.symbol) overlay = `<div class="coloring-symbol-overlay">${page.symbol}</div>`;
+                
+                html = `
+                    <div class="page-bleed" id="page-${page.id}" style="position: relative;">
+                        ${wrapImageForEdit(page.imageUrl, page.imagePrompt, page.id, page.type)}
+                        ${overlay}
+                    </div>
+                `;
+            } else if (page.type === 'blank') {
+                html = `
+                    <div class="page-bleed" id="page-${page.id}">
+                        <div style="width: 100%; height: 100%; background: white;"></div>
+                        <div class="blank-watermark">This page is intentionally left blank to protect your masterpiece.</div>
+                    </div>
+                `;
+            } else if (page.type === 'tracing' || page.type === 'memory-front') {
+                html = `
+                    <div class="page-text" id="page-${page.id}" style="background-color: #f8fafc;">
+                        ${page.htmlContent}
+                    </div>
+                `;
+            }
+            if(html) DOM.bookPage.insertAdjacentHTML('beforeend', html);
+        }
+
+        function renderAllPages() {
+            DOM.bookPage.innerHTML = '';
+            if (bookState.length === 0) {
+                DOM.bookPage.innerHTML = `<div class="page-text" style="justify-content: center; align-items: center; background: #f8fafc;" id="welcomePlaceholder"><h1 style="font-family: var(--kids-font); color: #cbd5e1; font-weight: 900; font-size: 2rem;">Premi "Genera Capolavoro"</h1></div>`;
                 return;
             }
-            node.style.fontSize = (parseFloat(window.getComputedStyle(node).fontSize) + delta) + 'px';
+            bookState.forEach(renderSinglePageToDOM);
         }
 
-        function wrapImageForEdit(imgHtml, originalPrompt) {
-            return `<div class="editable-image-container" data-prompt="${originalPrompt.replace(/"/g, '&quot;')}" onclick="openRegenModal(this)">${imgHtml}</div>`;
-        }
-
-        window.openRegenModal = function(container) {
-            imageToRegenerate = container.querySelector('img');
-            basePromptForRegen = container.dataset.prompt;
+        window.openRegenModal = function(pageId) {
+            const page = bookState.find(p => p.id === pageId);
+            if(!page || !page.imagePrompt) return;
+            imageToRegenerateId = pageId;
             DOM.regenPrompt.value = "";
             DOM.regenModal.classList.add('show');
         }
+        
         DOM.closeRegenModal.addEventListener('click', () => DOM.regenModal.classList.remove('show'));
         
         DOM.btnConfirmRegen.addEventListener('click', async () => {
+            const pageIndex = bookState.findIndex(p => p.id === imageToRegenerateId);
+            if(pageIndex === -1) return;
+            const page = bookState[pageIndex];
+
             const modifier = DOM.regenPrompt.value.trim();
-            const finalPrompt = modifier ? `${basePromptForRegen}. User specific modification: ${modifier}` : basePromptForRegen;
+            const finalPrompt = modifier ? `${page.imagePrompt}. User specific modification: ${modifier}` : page.imagePrompt;
             DOM.btnRegenText.classList.add('hidden'); DOM.btnRegenLoader.classList.remove('hidden'); DOM.btnConfirmRegen.disabled = true;
             try {
-                const aspect = imageToRegenerate.parentElement.classList.contains('page-bleed') || imageToRegenerate.parentElement.classList.contains('hero-bg-img') || imageToRegenerate.parentElement.classList.contains('coloring-frame-img') ? '3:4' : (layoutInfo.widthIn > layoutInfo.heightIn ? '16:9' : '3:4');
-                const resolution = 2400;
-                const newImgUrl = await callGeminiImage(finalPrompt, aspect, resolution, 0.9);
-                if(newImgUrl) { imageToRegenerate.src = newImgUrl; showToast("Magia Applicata!", "success"); }
+                const layoutInfo = applyLayoutEngine();
+                const newImgUrl = await callGeminiImage(finalPrompt, layoutInfo.aspect, 2400, 0.9);
+                if(newImgUrl) { 
+                    // Revoke old blob to prevent memory leak
+                    if(page.imageUrl && page.imageUrl.startsWith('blob:')) URL.revokeObjectURL(page.imageUrl);
+                    bookState[pageIndex].imageUrl = newImgUrl;
+                    renderAllPages(); // Re-render state
+                    showToast("Immagine rigenerata!", "success"); 
+                }
                 else { showToast("Immagine non disponibile.", "warning"); }
             } catch(e) { showToast(e.message, "error"); } finally {
                 DOM.btnRegenText.classList.remove('hidden'); DOM.btnRegenLoader.classList.add('hidden'); DOM.btnConfirmRegen.disabled = false;
@@ -669,238 +574,109 @@
         });
 
         DOM.btnStart.addEventListener('click', async () => {
-            const topic = DOM.topicInput.value.trim(); 
-            const lang = DOM.languageInput.value; 
-            const customList = DOM.customLessonList.value.trim();
+            const customList = DOM.customRecipeList.value.trim();
+            let subject = DOM.visualSetting.value === 'Custom' ? DOM.customVisualSetting.value.trim() : DOM.visualSetting.value;
+            const style = DOM.artStyle.value;
             
-            let visualSettingRaw = DOM.visualSetting.value;
-            if (visualSettingRaw === 'custom') {
-                visualSettingRaw = DOM.customVisualSetting.value.trim() || "Cute colorful illustrations for kids";
-            }
-            const artStyleRaw = DOM.artStyle.value;
-
-            if(!topic && !customList) return showToast("Dimmi l'argomento magico del libro!", "warning");
+            if(!customList) return showToast("Inserisci i simboli (es. A, B, C).", "warning");
+            if(!subject) return showToast("Definisci il soggetto (es. Dinosauri).", "warning");
+            if(!getAPIKey()) return showToast("Inserisci la tua Gemini API Key.", "error");
 
             DOM.btnStart.disabled = true; DOM.btnText.classList.add('hidden'); DOM.btnLoader.classList.remove('hidden');
             DOM.progressSection.classList.remove('hidden');
             
-            DOM.bookPage.innerHTML = `
-                <div class="page-text" style="justify-content: center; align-items: center; background: #ffffff;" id="welcomePlaceholder" dir="auto">
-                    <div class="title-page-wrap" style="background: #f8fafc; border: 16px solid #e2e8f0; border-radius: 80px; margin: 2rem; padding: 5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; height: calc(100% - 4rem); width: calc(100% - 4rem); box-sizing: border-box; box-shadow: inset 0 0 40px rgba(0,0,0,0.02), 0 20px 40px rgba(0,0,0,0.05);">
-                        <h1 class="doc-title" style="font-size: calc(6rem * var(--font-scale)); color: #3b82f6; text-shadow: 4px 4px 0px #bfdbfe;">${topic || "My Writing Book"}</h1>
-                        <div style="width: 100px; height: 8px; background: #fb7185; border-radius: 4px; margin: 3rem 0;"></div>
-                        <p style="font-family: 'Nunito', sans-serif; background: #fb7185; color: white; padding: 12px 40px; border-radius: 40px; font-size: calc(18pt * var(--font-scale)); margin-top: 10px; font-weight: 900; outline: none; text-transform: uppercase; letter-spacing: 4px; box-shadow: 0 10px 20px rgba(251, 113, 133, 0.3);">Premium Edition</p>
-                    </div>
-                </div>`; 
-            
-            generatedImages = []; globalTocEntries = []; let memorySymbols = []; let currentPhysicalPage = 1; 
+            cleanupMemory(); // Clear old state & free memory
             const layoutInfo = applyLayoutEngine(); 
-            const labels = i18n[lang] || i18n["English (US)"];
-            
-            // Add Premium Materials Page (Tools)
-            currentPhysicalPage++;
-            const matHtml = `
-            <div class="page-text" style="justify-content: center; align-items: center; background: #ffffff;" dir="auto">
-                <div style="border: 16px solid #f1f5f9; border-radius: 80px; margin: 2rem; padding: 4rem; display: flex; flex-direction: column; align-items: center; justify-content: center; height: calc(100% - 4rem); width: calc(100% - 4rem); box-sizing: border-box;">
-                    <h1 class="doc-h1 lbl-materials" style="font-family: 'Fredoka One', cursive; font-size: calc(4.5rem * var(--font-scale)); margin-bottom: 5rem; color: #0f172a; text-align: center;">${labels.materials}</h1>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; width: 90%; max-width: 800px;">
-                        <div style="background: #f0fdf4; border: 4px solid #bbf7d0; border-radius: 40px; padding: 40px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.03);">
-                            <div style="font-size: 6rem; margin-bottom: 20px; line-height: 1; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));">✏️</div>
-                            <h3 class="lbl-matPencil" style="font-family: 'Nunito', sans-serif; font-weight: 900; color: #166534; font-size: 2.2rem; text-transform: uppercase;">${labels.matPencil}</h3>
-                        </div>
-                        <div style="background: #fef2f2; border: 4px solid #fecaca; border-radius: 40px; padding: 40px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.03);">
-                            <div style="font-size: 6rem; margin-bottom: 20px; line-height: 1; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));">🧽</div>
-                            <h3 class="lbl-matEraser" style="font-family: 'Nunito', sans-serif; font-weight: 900; color: #991b1b; font-size: 2.2rem; text-transform: uppercase;">${labels.matEraser}</h3>
-                        </div>
-                        <div style="background: #eff6ff; border: 4px solid #bfdbfe; border-radius: 40px; padding: 40px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.03);">
-                            <div style="font-size: 6rem; margin-bottom: 20px; line-height: 1; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));">🖍️</div>
-                            <h3 class="lbl-matMarkers" style="font-family: 'Nunito', sans-serif; font-weight: 900; color: #1e3a8a; font-size: 2.2rem; text-transform: uppercase;">${labels.matMarkers}</h3>
-                        </div>
-                        <div style="background: #fdf4ff; border: 4px solid #fbcfe8; border-radius: 40px; padding: 40px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.03);">
-                            <div style="font-size: 6rem; margin-bottom: 20px; line-height: 1; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));">🎨</div>
-                            <h3 class="lbl-matCrayons" style="font-family: 'Nunito', sans-serif; font-weight: 900; color: #86198f; font-size: 2.2rem; text-transform: uppercase;">${labels.matCrayons}</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            `;
-            DOM.bookPage.insertAdjacentHTML('beforeend', matHtml);
+            const symbolArray = customList.split(',').map(s => s.trim()).filter(s => s);
+
+            const generateId = () => Math.random().toString(36).substr(2, 9);
 
             try {
-                updateStatus(`Progettazione sillabo in ${lang}...`, 5);
-                
-                let lessonArray = [];
-                if (customList) {
-                    lessonArray = customList.split(',').map(s => s.trim()).filter(s => s);
-                } else {
-                    const tocSys = `You are an expert children's educational author planning a complete workbook.
-CRITICAL: Generate a comprehensive list of exact items to teach based on the topic. 
-To reach approximately 100 pages, you MUST generate exactly 18 to 22 unique items.
-EACH item MUST focus on exactly ONE specific character. Examples: "Letter A", "Number 0".
-CRITICAL LANGUAGE: Output ALL lesson titles 100% strictly in ${lang.toUpperCase()}. Use the native script for that language.
-Return ONLY a valid JSON array of strings.`;
-                    lessonArray = await callGemini(`Generate a comprehensive syllabus of 18-22 unique lesson names in ${lang.toUpperCase()} for a complete workbook themed: "${topic}". JSON array only.`, tocSys);
-                }
+                // 1. FRONT COVER
+                updateStatus(`Generazione Copertina...`, 5);
+                const coverPrompt = "Masterpiece photorealistic photography, overhead angle. Diverse group of children of different ethnicities sitting at a wooden table, happily tracing international alphabets on lined paper, cutting colorful cards with round-tip scissors, playing memory card games, and coloring black and white symbols with crayons. Vibrant, bright natural lighting, highly detailed, joyful, educational setting.";
+                const imgCover = await callGeminiImage(coverPrompt, layoutInfo.aspect) || `https://placehold.co/1200/fecdd3/ec4899?text=Cover`;
+                const pageCover = { id: generateId(), type: 'cover', imagePrompt: coverPrompt, imageUrl: imgCover };
+                bookState.push(pageCover); renderSinglePageToDOM(pageCover);
+                await delay(1500);
 
-                for(let i = 0; i < lessonArray.length; i++) {
-                    const lName = lessonArray[i];
-                    updateStatus(`Analisi simbolo: ${lName}...`, ((i)/lessonArray.length)*100, i+1, lessonArray.length);
+                // 2. TOOLS PAGE
+                updateStatus(`Generazione Pagina Strumenti...`, 10);
+                const toolsPrompt = "Masterpiece photorealistic photography, full bleed overhead flatlay on a wooden table. Essential kids school supplies: a wooden pencil, a pink eraser, a set of colorful markers, and child-safe round-tip scissors. Beautifully arranged, bright natural light, highly detailed.";
+                const imgTools = await callGeminiImage(toolsPrompt, layoutInfo.aspect) || `https://placehold.co/1200/dbeafe/3b82f6?text=Tools`;
+                const pageTools = { id: generateId(), type: 'tools', imagePrompt: toolsPrompt, imageUrl: imgTools };
+                bookState.push(pageTools); renderSinglePageToDOM(pageTools);
+                await delay(1500);
+
+                // 3. LESSONS LOOP
+                for(let i = 0; i < symbolArray.length; i++) {
+                    const sym = symbolArray[i];
+                    updateStatus(`Creazione Modulo: ${sym}...`, 10 + ((i)/symbolArray.length)*70, i+1, symbolArray.length);
                     
                     try {
-                        const lessonSys = `You are an expert children's educational author. Extract the single target character from the topic: "${lName}".
-Return ONLY valid JSON. Schema: { "targetCharacter": "The exact single letter/number/shape (e.g., '0' or 'A')" }`;
-                        const lData = await callGemini(`Extract character for "${lName}".`, lessonSys);
+                        // Hero
+                        const heroPrompt = `Masterpiece full bleed background, ${subject}, ${style}. Beautiful scenery, highly detailed, vibrant colors. NO TEXT, NO LETTERS.`;
+                        const imgHero = await callGeminiImage(heroPrompt, layoutInfo.aspect) || `https://placehold.co/1200/fef3c7/f59e0b?text=Background`;
+                        const pageHero = { id: generateId(), type: 'hero', symbol: sym, imagePrompt: heroPrompt, imageUrl: imgHero };
+                        bookState.push(pageHero); renderSinglePageToDOM(pageHero);
+                        await delay(1500);
 
-                        let rawChar = lData.targetCharacter || "";
-                        let cleanChar = rawChar.replace(/[()]/g, '').trim(); 
-                        if(cleanChar.length > 2 && !lang.includes("Arabic")) {
-                            const match = cleanChar.match(/[\w\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af]/);
-                            cleanChar = match ? match[0] : cleanChar.substring(0, 1);
+                        // Tracing
+                        let gridHtml = '<div class="tracing-grid">';
+                        for(let t=0; t<20; t++) {
+                            const charClass = t === 0 ? 'tracing-char tracing-char-solid' : 'tracing-char';
+                            gridHtml += `<div class="tracing-cell"><div class="tracing-lines"></div><span class="${charClass}">${sym}</span></div>`;
                         }
-                        
-                        memorySymbols.push(cleanChar);
+                        gridHtml += '</div>';
+                        const pageTracing = { id: generateId(), type: 'tracing', htmlContent: gridHtml };
+                        bookState.push(pageTracing); renderSinglePageToDOM(pageTracing);
 
-                        // --- PAGE 1: HERO INTRO (FULL BLEED WITH GIANT CENTER SYMBOL PROTAGONIST) ---
-                        currentPhysicalPage++; 
-                        globalTocEntries.push({ title: lName, pageNum: currentPhysicalPage }); 
-                        updateStatus(`Creazione Intro Visiva: ${lName}...`, null, i+1, lessonArray.length);
-                        
-                        const fullHeroPrompt = `Masterpiece children's book illustration, gorgeous full-page bleed artwork, flawless composition, highly detailed, vibrant colors, magical lighting. Theme: "${visualSettingRaw}". Style: "${artStyleRaw}". IMPORTANT: Leave the exact center completely open and uncluttered for a prominent symbol overlay. NO TEXT. NO LETTERS. NO WORDS.`;
-                        const imgHero = await callGeminiImage(fullHeroPrompt, layoutInfo.widthIn > layoutInfo.heightIn ? '16:9' : '3:4', 2400, 0.9);
-                        if(imgHero) generatedImages.push({url: imgHero, title: lName});
-                        const imgFallback = imgHero || `https://placehold.co/800/1e293b/fcd34d?text=${encodeURIComponent('Visual Theme')}`;
-                        
-                        DOM.bookPage.insertAdjacentHTML('beforeend', `
-                            <div class="page-bleed lesson-block" data-recipe-id="${i}" dir="auto">
-                                <div class="hero-bg-img">${wrapImageForEdit(`<img src="${imgFallback}" alt="Lesson Hero" />`, fullHeroPrompt)}</div>
-                                <div class="hero-symbol-giant">
-                                    <span class="hero-char-inner">${cleanChar}</span>
-                                </div>
-                            </div>
-                        `);
-                        await delay(3500); 
+                        // Coloring
+                        updateStatus(`Creazione Cornice da Colorare: ${sym}...`, null, i+1, symbolArray.length);
+                        const coloringPrompt = `Vector line art, pure black and white coloring page frame, ${subject}. Extremely simple thick outlines for toddlers to color. Blank empty white space in the exact center. No shading, no gray, absolute pure B&W line art.`;
+                        const imgColoring = await callGeminiImage(coloringPrompt, layoutInfo.aspect) || `https://placehold.co/1200/ffffff/000000?text=Coloring+Frame`;
+                        const pageColor = { id: generateId(), type: 'coloring', symbol: sym, imagePrompt: coloringPrompt, imageUrl: imgColoring };
+                        bookState.push(pageColor); renderSinglePageToDOM(pageColor);
+                        await delay(1500);
 
-                        // --- PAGE 2: PRACTICE TRACING GRID ---
-                        currentPhysicalPage++;
-                        updateStatus(`Generazione Scheda Tracciato: ${lName}...`, null, i+1, lessonArray.length);
-                        
-                        let practiceHtml = `
-                        <div class="page-text lesson-block practice-container" data-recipe-id="${i}" dir="auto">
-                            <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 3rem; gap: 2rem;">
-                                <div style="width: 60px; height: 6px; background: #cbd5e1; border-radius: 3px;"></div>
-                                <div style="font-family: 'Fredoka One', cursive; font-size: calc(3.5rem * var(--font-scale)); color: #3b82f6; text-transform: uppercase; letter-spacing: 2px;">${cleanChar}</div>
-                                <div style="width: 60px; height: 6px; background: #cbd5e1; border-radius: 3px;"></div>
-                            </div>
-                            <div class="tracing-grid-area">
-                        `;
-                        for(let r=0; r<5; r++) {
-                            practiceHtml += `
-                                <div class="tracing-row">
-                                    <div class="tracing-lines-bg"></div>`;
-                            for(let c=0; c<5; c++) {
-                                practiceHtml += `<div class="tracing-char-container"><span class="tracing-char">${cleanChar}</span></div>`;
-                            }
-                            practiceHtml += `</div>`;
-                        }
-                        practiceHtml += `</div></div>`;
-                        DOM.bookPage.insertAdjacentHTML('beforeend', practiceHtml);
+                        // Blank
+                        const pageBlank = { id: generateId(), type: 'blank' };
+                        bookState.push(pageBlank); renderSinglePageToDOM(pageBlank);
 
-                        // --- PAGE 3: COLORING PAGE (GIANT SYMBOL + THEME BORDER) ---
-                        currentPhysicalPage++;
-                        updateStatus(`Generazione Pagina da Colorare: ${lName}...`, null, i+1, lessonArray.length);
-                        
-                        const fullFramePrompt = `Extremely simple, minimalist children's coloring page border, very basic thick black outlines, lots of white empty space, easy to color for toddlers, unshaded flat line art themed: "${visualSettingRaw}". CRITICAL: Leave the entire center completely blank and pure white. ONLY draw very simple, large shapes on the extreme edges. NO TEXT. NO SHADING. NO COMPLEX DETAILS.`;
-                        const imgFrame = await callGeminiImage(fullFramePrompt, '3:4', 2400, 0.9);
-                        const imgFrameFallback = imgFrame || `https://placehold.co/800x1000/ffffff/cccccc?text=Coloring+Border`;
-                        
-                        let coloringHtml = `
-                        <div class="page-bleed lesson-block" data-recipe-id="${i}" dir="auto">
-                            <div class="coloring-container">
-                                <div class="coloring-frame-img">${wrapImageForEdit(`<img src="${imgFrameFallback}" alt="Coloring Frame" />`, fullFramePrompt)}</div>
-                                <div class="coloring-char-overlay">${cleanChar}</div>
-                            </div>
-                        </div>`;
-                        DOM.bookPage.insertAdjacentHTML('beforeend', coloringHtml);
-                        await delay(3500);
-
-                        // --- PAGE 4: BLANK PROTECTION PAGE ---
-                        currentPhysicalPage++;
-                        let blankHtml = `
-                        <div class="page-text lesson-block" data-recipe-id="${i}" dir="auto" style="justify-content: center; align-items: center; position: relative; background: #ffffff;">
-                            <span class="lbl-blankPage" style="position: absolute; bottom: calc(var(--safe-margin-px) * 0.8); font-size: 8pt; color: #e2e8f0; text-align: center; width: 80%; font-family: 'Nunito', sans-serif;">${labels.blankPage}</span>
-                        </div>`;
-                        DOM.bookPage.insertAdjacentHTML('beforeend', blankHtml);
-
-                    } catch(err) { showToast(`Errore: ${lName} - ${err.message}`, "error"); }
+                    } catch(err) { showToast(`Errore su ${sym}: ${err.message}`, "error"); }
                 }
 
-                updateStatus("Impaginazione Magica dell'Indice...", 98);
-                const colClass = globalTocEntries.length > 20 ? 'toc-3col' : (globalTocEntries.length > 10 ? 'toc-2col' : '');
-                let tocHTML = `<div class="page-text" id="pdfTOC" dir="auto" style="background: #f8fafc;"><h1 class="doc-h1 lbl-toc" style="color: #3b82f6; font-size: calc(4.5rem * var(--font-scale)); margin-bottom: 4rem; margin-top: 2rem;">${labels.toc}</h1><div class="toc-columns ${colClass}">`;
-                globalTocEntries.forEach(e => { tocHTML += `<div class="toc-item"><span class="toc-title">${e.title}</span><div class="toc-leader"></div><span class="toc-page">${e.pageNum}</span></div>`; });
-                DOM.bookPage.insertAdjacentHTML('beforeend', tocHTML + `</div></div>`);
-                
-                updateStatus("Creazione Carte Memory Game...", 95);
-                
-                currentPhysicalPage++;
-                DOM.bookPage.insertAdjacentHTML('beforeend', `
-                    <div class="page-text lesson-block" style="justify-content: center; align-items: center; background: #fffbeb;" dir="auto">
-                        <div style="background: white; border: 12px solid #fde047; border-radius: 80px; padding: 6rem; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.05); width: 80%; display: flex; flex-direction: column; align-items: center;">
-                            <div style="font-size: 10rem; margin-bottom: 2rem; line-height: 1; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));">🃏</div>
-                            <h1 class="doc-title lbl-memory-title" style="color: #eab308; font-size: calc(6.5rem * var(--font-scale)); line-height: 1.1; margin: 0; text-shadow: 3px 3px 0px #fef08a;">${labels.memoryTitle}</h1>
-                        </div>
-                    </div>
-                `);
+                // 4. MEMORY GAME
+                updateStatus(`Generazione Gioco Memory...`, 85);
+                const allCards = [...symbolArray, ...symbolArray].sort(() => Math.random() - 0.5); 
+                const cardsPerPage = 12; 
+                const totalMemPages = Math.ceil(allCards.length / cardsPerPage);
 
-                let pairs = [...memorySymbols, ...memorySymbols];
-                pairs.sort(() => Math.random() - 0.5); 
-                
-                const cardsPerPage = 16; 
-                
-                const patternPrompt = `Premium children's book endpaper pattern, seamless edge-to-edge, flat vector art, highly detailed, vibrant harmonious colors. NO TEXT. NO LETTERS. perfectly tileable design. Theme: "${visualSettingRaw}". Style: "${artStyleRaw}".`;
-                const patternImg = await callGeminiImage(patternPrompt, layoutInfo.widthIn > layoutInfo.heightIn ? '16:9' : '3:4', 2400, 0.9);
-                const patternFallback = patternImg || `https://placehold.co/800x1000/f8fafc/cbd5e1?text=Memory+Back+Pattern`;
-
-                const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f43f5e'];
-
-                for (let i = 0; i < pairs.length; i += cardsPerPage) {
-                    const chunk = pairs.slice(i, i + cardsPerPage);
-                    
-                    currentPhysicalPage++;
-                    let gridHtml = `<div class="page-text" style="padding: calc(var(--safe-margin-px) * 0.8); background: #ffffff; justify-content: center; align-items: center;" dir="auto">
-                        <div class="memory-grid">
-                    `;
-                    gridHtml += `<div style="position: absolute; top: -30px; left: -30px; font-size: 50px; background: white; border-radius: 50%; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; z-index: 10; transform: rotate(-45deg); box-shadow: 0 8px 15px rgba(0,0,0,0.1); border: 2px solid #cbd5e1;">✂️</div>`;
-                        
-                    chunk.forEach((sym, index) => {
-                        const rCol = colors[index % colors.length];
-                        gridHtml += `
-                            <div class="memory-card">
-                                <div class="memory-card-inner" style="border-color: ${rCol}; background: ${rCol}10;">
-                                    <span class="memory-char" style="color: ${rCol};">${sym}</span>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    
-                    for(let j = chunk.length; j < cardsPerPage; j++) {
-                         gridHtml += `<div class="memory-card"><div class="memory-card-inner" style="border-color: #e2e8f0; background: #f8fafc; opacity: 0.5;"></div></div>`;
+                for(let m = 0; m < totalMemPages; m++) {
+                    const sIdx = m * cardsPerPage;
+                    const eIdx = Math.min(sIdx + cardsPerPage, allCards.length);
+                    let cardsHtml = '<div class="memory-grid">';
+                    for(let c = sIdx; c < eIdx; c++) {
+                        cardsHtml += `<div class="memory-card"><div class="scissors-icon">✂️</div>${allCards[c]}</div>`;
                     }
-                    gridHtml += `</div></div>`;
-                    DOM.bookPage.insertAdjacentHTML('beforeend', gridHtml);
+                    cardsHtml += '</div>';
                     
-                    currentPhysicalPage++;
-                    DOM.bookPage.insertAdjacentHTML('beforeend', `
-                        <div class="page-bleed" dir="auto" style="border-left: 2px dashed #cbd5e1;">
-                            <div class="editable-image-container" data-prompt="${patternPrompt}" onclick="openRegenModal(this)" style="width: 100%; height: 100%;">
-                                <img src="${patternFallback}" alt="Memory Cards Back Pattern" style="width: 100%; height: 100%; object-fit: cover !important;" />
-                            </div>
-                        </div>
-                    `);
-                }
+                    const pageMemFront = { id: generateId(), type: 'memory-front', htmlContent: cardsHtml };
+                    bookState.push(pageMemFront); renderSinglePageToDOM(pageMemFront);
 
-                updateStatus("Silent Workbook Creato!", 100, lessonArray.length, lessonArray.length);
-                showToast("Libro Magico generato con successo!", "success");
+                    updateStatus(`Generazione Dorso Carte ${m+1}/${totalMemPages}...`, null);
+                    const patternPrompt = `Seamless dense pattern background, ${subject}, ${style}. Flat vector art, highly decorative, covering entire frame. NO TEXT.`;
+                    const imgPattern = await callGeminiImage(patternPrompt, layoutInfo.aspect) || `https://placehold.co/1200/cbd5e1/475569?text=Pattern`;
+                    const pageMemBack = { id: generateId(), type: 'pattern', imagePrompt: patternPrompt, imageUrl: imgPattern };
+                    bookState.push(pageMemBack); renderSinglePageToDOM(pageMemBack);
+                    await delay(1500);
+
+                    const pageBlankMem = { id: generateId(), type: 'blank' };
+                    bookState.push(pageBlankMem); renderSinglePageToDOM(pageBlankMem);
+                }
+                
+                updateStatus("Capolavoro Completato!", 100);
+                showToast("Libro generato con successo!", "success");
             } catch(e) { 
                 showToast(e.message, "error"); 
             } finally { 
@@ -909,221 +685,96 @@ Return ONLY valid JSON. Schema: { "targetCharacter": "The exact single letter/nu
             }
         });
 
-        DOM.btnOpenAPlusModal.addEventListener('click', () => { DOM.aplusModal.classList.add('show'); if (DOM.aplusBannersContainer.innerHTML.trim() === '') generateAPlusContent(); });
-        DOM.closeAPlusModal.addEventListener('click', () => DOM.aplusModal.classList.remove('show'));
-        DOM.btnRegenerateAPlus.addEventListener('click', generateAPlusContent);
-
-        function getCleanPageHtml(index) {
-            const pages = document.querySelectorAll('.lesson-block[data-recipe-id="0"]');
-            const width = getComputedStyle(document.documentElement).getPropertyValue('--page-width-px').trim();
-            const height = getComputedStyle(document.documentElement).getPropertyValue('--page-height-px').trim();
+        DOM.savePdfBtn.addEventListener('click', async () => {
+            if(bookState.length === 0) return showToast("Genera prima un libro.", "warning");
             
-            let clone;
-            if(pages[index]) {
-                clone = pages[index].cloneNode(true);
-            } else {
-                clone = document.createElement('div');
-                clone.style.background = 'white';
-            }
-            
-            clone.style.width = width;
-            clone.style.height = height;
-            clone.style.position = 'absolute';
-            clone.style.top = '0';
-            clone.style.left = '0';
-            clone.style.margin = '0';
-            clone.style.boxShadow = 'none';
-            clone.style.border = 'none';
-            
-            clone.querySelectorAll('.editable-image-container').forEach(el => { el.className = ''; el.onclick = null; });
-            clone.querySelectorAll('.editable-text-container').forEach(el => { el.className = ''; el.onclick = null; });
-            
-            return `<div style="width: ${width}; height: ${height}; overflow: hidden; position: relative;">${clone.outerHTML}</div>`;
-        }
+            DOM.pdfProgressModal.classList.add('show');
+            DOM.savePdfBtn.disabled = true;
+            document.body.classList.add('pdf-exporting'); // Rimuove shadow per canvas pulito
 
-        function createFlatBookMockup(pageL, pageR) {
-            const width = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--page-width-px'));
-            const height = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--page-height-px'));
-            const totalWidth = width * 2;
-            const scale = Math.min(360 / totalWidth, 240 / height);
-
-            return `
-            <div class="aplus-mockup-wrapper" style="width: 400px; height: 280px; position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0; perspective: 1000px;">
-                <div class="aplus-mockup-scaler" style="position: absolute; transform: scale(${scale}); transform-origin: center center; display: flex;">
-                    <div style="position: absolute; bottom: -10px; left: 8px; right: 8px; height: 10px; background: #e2e8f0; border-radius: 0 0 6px 6px; border: 1px solid #cbd5e1; border-top: none; box-shadow: 0 10px 20px rgba(0,0,0,0.3);"></div>
-                    <div class="aplus-flat-book" style="display: flex; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border-radius: 4px; position: relative; background: white; overflow: hidden; border: 1px solid #cbd5e1;">
-                        <div style="width: ${width}px; height: ${height}px; overflow: hidden; position: relative; background: white;">
-                            ${pageL}
-                            <div style="position: absolute; inset: 0; background: linear-gradient(to right, rgba(255,255,255,0) 80%, rgba(0,0,0,0.05) 92%, rgba(0,0,0,0.3) 100%); pointer-events: none; z-index: 100;"></div>
-                        </div>
-                        <div style="width: 4px; background: linear-gradient(to right, #94a3b8 0%, #cbd5e1 50%, #94a3b8 100%); z-index: 101;"></div>
-                        <div style="width: ${width}px; height: ${height}px; overflow: hidden; position: relative; background: white;">
-                            ${pageR}
-                            <div style="position: absolute; inset: 0; background: linear-gradient(to left, rgba(255,255,255,0) 80%, rgba(0,0,0,0.05) 92%, rgba(0,0,0,0.3) 100%); pointer-events: none; z-index: 100;"></div>
-                        </div>
-                        <div style="position: absolute; top: 0; left: 0; right: 0; height: 2px; background: rgba(255,255,255,0.7); z-index: 102; pointer-events: none;"></div>
-                    </div>
-                </div>
-            </div>`;
-        }
-
-        async function generateAPlusContent() {
-            if(globalTocEntries.length < 1) return showToast("Genera prima un libro per estrarre le pagine del mockup.", "warning");
-            DOM.btnRegenerateAPlus.disabled = true; DOM.btnRegenAPlusText.classList.add('hidden'); DOM.btnRegenAPlusLoader.classList.remove('hidden');
             try {
-                const sys = `You are an Amazon KDP A+ Content marketing expert for children's books. Write persuasive, fun, highly engaging copy strictly in ${DOM.languageInput.value} to sell a visual children's writing workbook. Output JSON: { "b1": { "headline": "...", "sub": "..." }, "b2": { "headline": "...", "bullets": ["...", "...", "..."] }, "b3": { "headline": "...", "sub": "..." } }`;
-                const promptData = DOM.topicInput.value || DOM.customLessonList.value || "Writing Workbook";
-                const copy = await callGemini(`Write A+ marketing copy for a children's writing workbook about '${promptData}' in ${DOM.languageInput.value}. Ensure translations are perfect. Keep bullet points very short (Max 10 words each). Give exactly 3 bullet points.`, sys);
-                
-                DOM.aplusBannersContainer.innerHTML = `
-                    <div class="aplus-banner" style="background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: white; display: flex; align-items: center; padding: 0 40px; justify-content: space-between;" dir="auto">
-                        <div style="flex: 1; padding-right: 30px; display: flex; flex-direction: column; justify-content: center; min-width: 0;">
-                            <h2 contenteditable="true" class="editable-text" style="font-family: 'Fredoka One', cursive; font-size: 2.3rem; color: #fde047; margin: 0 0 1rem 0; line-height: 1.2;">${copy.b1.headline}</h2>
-                            <p contenteditable="true" class="editable-text" style="font-family: 'Nunito', sans-serif; font-size: 1.1rem; font-weight: 800; color: #fdf2f8; margin: 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${copy.b1.sub}</p>
-                        </div>
-                        ${createFlatBookMockup(getCleanPageHtml(0), getCleanPageHtml(1))}
-                    </div>
-                    
-                    <div class="aplus-banner" style="background: #ffffff; display: flex; align-items: center; padding: 0 30px; justify-content: space-between; border: 4px solid #fde047;" dir="auto">
-                        ${createFlatBookMockup(getCleanPageHtml(1), getCleanPageHtml(2))}
-                        <div style="flex: 1; padding-left: 25px; display: flex; flex-direction: column; justify-content: center; min-width: 0; height: 100%;">
-                            <h2 contenteditable="true" class="editable-text" style="font-family: 'Fredoka One', cursive; font-size: 1.6rem; color: #0ea5e9; margin: 0 0 0.8rem 0; line-height: 1.1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${copy.b2.headline}</h2>
-                            <ul style="list-style: none; padding: 0; margin: 0; font-family: 'Nunito', sans-serif; display: flex; flex-direction: column; gap: 8px;">
-                                ${copy.b2.bullets.slice(0,3).map(b => `<li contenteditable="true" class="editable-text" style="display: flex; gap: 10px; font-size: 0.9rem; color: #334155; font-weight: 800; line-height: 1.2; background: #f8fafc; padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; align-items: flex-start; -webkit-box-orient: vertical; display: -webkit-box; -webkit-line-clamp: 2; overflow: hidden;"><strong style="color: #f59e0b; font-size: 1.1rem; line-height: 1;">⭐</strong> <span style="width: 100%;">${b}</span></li>`).join('')}
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="aplus-banner" style="background: #e0f2fe; display: flex; align-items: center; padding: 0 40px; justify-content: space-between; border: 4px solid #7dd3fc;" dir="auto">
-                        <div style="flex: 1; padding-right: 30px; display: flex; flex-direction: column; justify-content: center; min-width: 0;">
-                            <h2 contenteditable="true" class="editable-text" style="font-family: 'Fredoka One', cursive; font-size: 2.3rem; color: #e11d48; margin: 0 0 1rem 0; line-height: 1.2;">${copy.b3.headline}</h2>
-                            <p contenteditable="true" class="editable-text" style="font-family: 'Nunito', sans-serif; font-size: 1.1rem; font-weight: 800; color: #1e293b; margin: 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${copy.b3.sub}</p>
-                        </div>
-                        ${createFlatBookMockup(getCleanPageHtml(0), getCleanPageHtml(2))}
-                    </div>
-                `;
-                DOM.btnDownloadAPlus.classList.remove('hidden');
-            } catch(e) { showToast(e.message, "error"); } finally { DOM.btnRegenerateAPlus.disabled = false; DOM.btnRegenAPlusText.classList.remove('hidden'); DOM.btnRegenAPlusLoader.classList.add('hidden'); }
-        }
+                const layout = applyLayoutEngine();
+                const pdf = new windowJsPDF({
+                    orientation: layout.widthIn > layout.heightIn ? 'landscape' : 'portrait',
+                    unit: 'in',
+                    format: [layout.widthIn, layout.heightIn]
+                });
 
-        DOM.btnDownloadAPlus.addEventListener('click', async () => {
-            const banners = document.querySelectorAll('.aplus-banner');
-            for(let i=0; i<banners.length; i++) {
-                const canvas = await html2canvas(banners[i], { scale: 2, useCORS: true, backgroundColor: null });
-                const a = document.createElement('a'); a.href = canvas.toDataURL('image/jpeg', 0.9); a.download = `APlus_Banner_${i+1}.jpg`; a.click(); await delay(500);
-            }
-        });
-
-        DOM.savePdfBtn.addEventListener('click', () => {
-            if(!document.querySelector('.doc-h1')) return showToast("Genera prima un libro.", "warning");
-            showToast("Nel pannello di stampa seleziona Margini 'Nessuno' e attiva 'Grafica in background'.", "warning");
-            setTimeout(() => window.print(), 2500);
-        });
-
-        DOM.saveEpubBtn.addEventListener('click', async () => {
-            if(globalTocEntries.length === 0) return showToast("Genera prima un libro.", "warning");
-            showToast("Compilazione EPUB in corso... L'operazione può richiedere un po'.", "info");
-            try {
-                const zip = new JSZip(); 
-                zip.file("mimetype", "application/epub+zip");
-                
-                const metaInf = zip.folder("META-INF"); 
-                metaInf.file("container.xml", `<?xml version="1.0"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>`);
-                
-                const oebps = zip.folder("OEBPS"); 
-                const imgFolder = oebps.folder("images");
-                const title = DOM.topicInput.value || "Writing Book";
-                
-                let manifestItems = [];
-                let spineItems = [];
-                let imageMap = new Map();
-                let imgCounter = 0;
-
-                const images = document.querySelectorAll('#bookPage img');
-                for (let i = 0; i < images.length; i++) {
-                    const src = images[i].src;
-                    if (!imageMap.has(src)) {
-                        const filename = `image_${imgCounter}.jpg`;
-                        imageMap.set(src, filename);
-                        try {
-                            const response = await fetch(src);
-                            const blob = await response.blob();
-                            imgFolder.file(filename, blob);
-                            manifestItems.push(`<item id="img_${imgCounter}" href="images/${filename}" media-type="image/jpeg"/>`);
-                            imgCounter++;
-                        } catch(e) { console.warn("Could not pack image", src); }
-                    }
-                }
-
-                const pages = document.querySelectorAll('.page-text, .page-bleed');
-                let fileCounter = 0;
-
+                const pages = Array.from(DOM.bookPage.children);
                 for (let i = 0; i < pages.length; i++) {
-                    let p = pages[i].cloneNode(true);
-                    let imgs = p.querySelectorAll('img');
-                    imgs.forEach(img => { if (imageMap.has(img.src)) img.src = `images/${imageMap.get(img.src)}`; });
+                    DOM.pdfProgressText.textContent = `Analisi Pagina ${i + 1} di ${pages.length}...`;
+                    DOM.pdfProgressBar.style.width = `${((i)/pages.length)*100}%`;
                     
-                    let pageHtml = `<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" dir="auto"><head><title>Page ${fileCounter}</title><style>body{font-family:sans-serif; margin: 0; padding: 5%; background: white;} img{max-width:100%; height:auto;} .tracing-char { font-size: 5em; color: #ccc; border: 1px dashed #ccc; padding: 10px; margin: 10px; display: inline-block; } .coloring-char-overlay { font-size: 15em; border: 5px solid black; text-align: center; display:block; margin:auto;} .memory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; } .memory-card { border: 2px dashed #ccc; padding: 20px; text-align: center; }</style></head><body>${p.innerHTML}</body></html>`;
+                    const el = pages[i];
+                    // Temporaneamente porta l'elemento visibile in alto se necessario o assicurati che html2canvas lo catturi
+                    const canvas = await html2canvas(el, { 
+                        scale: 2, // High resolution for print
+                        useCORS: true,
+                        logging: false,
+                        backgroundColor: '#ffffff'
+                    });
                     
-                    const filename = `page_${fileCounter}.xhtml`;
-                    oebps.file(filename, pageHtml);
-                    manifestItems.push(`<item id="page_${fileCounter}" href="${filename}" media-type="application/xhtml+xml"/>`);
-                    spineItems.push(`<itemref idref="page_${fileCounter}"/>`);
-                    fileCounter++;
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                    
+                    if (i > 0) pdf.addPage([layout.widthIn, layout.heightIn]);
+                    pdf.addImage(imgData, 'JPEG', 0, 0, layout.widthIn, layout.heightIn);
+                    
+                    // Piccola pausa per non bloccare del tutto il main thread
+                    await delay(50);
                 }
 
-                let epubTocHTML = `<?xml version="1.0" encoding="utf-8"?><html xmlns="http://www.w3.org/1999/xhtml" dir="auto"><head><title>Table of Contents</title></head><body><h1>Table of Contents</h1><ul>`;
-                globalTocEntries.forEach((e) => { epubTocHTML += `<li><a href="page_0.xhtml">${e.title}</a></li>`; });
-                epubTocHTML += `</ul></body></html>`;
-                oebps.file("toc.xhtml", epubTocHTML);
-                manifestItems.push(`<item id="toc" href="toc.xhtml" media-type="application/xhtml+xml" properties="nav"/>`);
-                spineItems.unshift(`<itemref idref="toc"/>`);
+                DOM.pdfProgressText.textContent = "Salvataggio File...";
+                DOM.pdfProgressBar.style.width = `100%`;
+                await delay(500);
 
-                const langCode = DOM.languageInput.value.substring(0,2).toLowerCase();
-                oebps.file("content.opf", `<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="pub-id"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>${title}</dc:title><dc:language>${langCode}</dc:language><dc:identifier id="pub-id">urn:uuid:${crypto.randomUUID()}</dc:identifier></metadata><manifest>${manifestItems.join('\n')}</manifest><spine>${spineItems.join('\n')}</spine></package>`);
-                
-                const content = await zip.generateAsync({type:"blob", compression: "STORE"});
-                const a = document.createElement('a'); a.href = URL.createObjectURL(content); a.download = `${title.replace(/[^a-z0-9]/gi, '_')}.epub`; a.click();
-                showToast("EPUB Magico Creato!", "success");
-            } catch (e) { showToast("Errore durante la creazione", "error"); console.error(e); }
+                pdf.save(`KDP_KidsBook_${Date.now()}.pdf`);
+                showToast("PDF Generato con Successo! Pronto per KDP.", "success");
+
+            } catch(err) {
+                showToast("Errore durante la generazione del PDF: " + err.message, "error");
+            } finally {
+                document.body.classList.remove('pdf-exporting');
+                DOM.pdfProgressModal.classList.remove('show');
+                DOM.savePdfBtn.disabled = false;
+            }
         });
 
         DOM.btnSaveProject.addEventListener('click', async () => {
-            if (!DOM.bookPage.innerHTML.trim() || DOM.bookPage.querySelectorAll('.lesson-block').length === 0) {
-                return showToast("Nessun libro da salvare. Crealo prima!", "warning");
-            }
-            showToast("Preparazione incantesimo di salvataggio... attendere", "info");
+            if (bookState.length === 0) return showToast("Nessun libro da salvare.", "warning");
+            
+            showToast("Preparazione file... Conversione immagini in corso (può richiedere tempo).", "info");
             DOM.btnSaveProject.disabled = true;
+            DOM.progressSection.classList.remove('hidden');
+
             try {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = DOM.bookPage.innerHTML;
-                const images = tempDiv.querySelectorAll('img');
-                
-                for(let img of images) {
-                    if(img.src.startsWith('blob:')) {
-                        const response = await fetch(img.src);
-                        const blob = await response.blob();
-                        const reader = new FileReader();
-                        const base64 = await new Promise((resolve) => {
-                            reader.onloadend = () => resolve(reader.result);
-                            reader.readAsDataURL(blob);
-                        });
-                        img.src = base64;
+                // Batch processing base64 conversion non bloccante
+                const pagesToSave = [];
+                for (let i = 0; i < bookState.length; i++) {
+                    updateStatus("Salvataggio Dati...", ((i)/bookState.length)*100, i+1, bookState.length);
+                    const page = { ...bookState[i] };
+                    if (page.imageUrl && page.imageUrl.startsWith('blob:')) {
+                        page.imageUrl = await blobUrlToBase64(page.imageUrl);
                     }
+                    pagesToSave.push(page);
                 }
                 
                 const projectData = {
-                    version: "15.0", topic: DOM.topicInput.value,
-                    language: DOM.languageInput.value, trimSize: document.getElementById('trimSize').value,
-                    customList: DOM.customLessonList.value, visualSetting: DOM.visualSetting.value,
-                    customVisualSetting: DOM.customVisualSetting.value, artStyle: DOM.artStyle.value,
-                    toc: globalTocEntries, html: tempDiv.innerHTML
+                    version: "5.0", // New state-based version
+                    visualSetting: DOM.visualSetting.value, customVisualSetting: DOM.customVisualSetting.value,
+                    artStyle: DOM.artStyle.value, trimSize: DOM.trimSize.value,
+                    customList: DOM.customRecipeList.value, 
+                    bookState: pagesToSave
                 };
                 
                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projectData));
-                const a = document.createElement('a'); a.href = dataStr; a.download = `KDP_Kids_${DOM.topicInput.value.replace(/[^a-z0-9]/gi, '_') || 'Workbook'}.kdp`; a.click();
+                const a = document.createElement('a'); a.href = dataStr; a.download = `KDP_Project_${Date.now()}.kdp`; a.click();
                 showToast("Progetto salvato con successo!", "success");
-            } catch(e) { showToast("Errore durante il salvataggio: " + e.message, "error"); } finally { DOM.btnSaveProject.disabled = false; }
+            } catch(e) { 
+                showToast("Errore durante il salvataggio: " + e.message, "error"); 
+            } finally { 
+                DOM.btnSaveProject.disabled = false; 
+                setTimeout(() => DOM.progressSection.classList.add('hidden'), 2000);
+            }
         });
 
         DOM.btnLoadProject.addEventListener('click', () => DOM.fileLoadProject.click());
@@ -1132,36 +783,34 @@ Return ONLY valid JSON. Schema: { "targetCharacter": "The exact single letter/nu
             if(!file) return;
             const reader = new FileReader();
             reader.onload = async (event) => {
-                showToast("Risvegliando il libro dal sonno...", "info");
+                showToast("Caricamento libro...", "info");
                 try {
                     const data = JSON.parse(event.target.result);
-                    if (data.topic) DOM.topicInput.value = data.topic;
-                    if (data.language) DOM.languageInput.value = data.language;
-                    if (data.trimSize) document.getElementById('trimSize').value = data.trimSize;
-                    if (data.customList) DOM.customLessonList.value = data.customList;
-                    if (data.visualSetting) {
-                        DOM.visualSetting.value = data.visualSetting;
-                        if(data.visualSetting === 'custom') {
-                            DOM.customVisualSetting.classList.remove('hidden');
-                            DOM.customVisualSetting.value = data.customVisualSetting || "";
-                        }
-                    }
+                    
+                    // Support legacy version check
+                    if(!data.bookState) throw new Error("Formato progetto obsoleto o non valido.");
+
+                    if (data.visualSetting) { DOM.visualSetting.value = data.visualSetting; DOM.visualSetting.dispatchEvent(new Event('change')); }
+                    if (data.customVisualSetting) DOM.customVisualSetting.value = data.customVisualSetting;
                     if (data.artStyle) DOM.artStyle.value = data.artStyle;
-                    if (data.toc) globalTocEntries = data.toc;
+                    if (data.trimSize) DOM.trimSize.value = data.trimSize;
+                    if (data.customList) DOM.customRecipeList.value = data.customList;
                     
                     applyLayoutEngine();
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = data.html;
-                    const images = tempDiv.querySelectorAll('img');
+                    cleanupMemory();
                     
-                    for(let img of images) {
-                        if(img.src.startsWith('data:image')) {
-                            img.src = await processImageToBlobUrl(img.src, 2400, 0.9);
+                    // Restore state converting Base64 back to Blobs for RAM efficiency
+                    for(let i=0; i<data.bookState.length; i++) {
+                        let page = data.bookState[i];
+                        if (page.imageUrl && page.imageUrl.startsWith('data:image')) {
+                            page.imageUrl = await processImageToBlobUrl(page.imageUrl, 2400, 0.9);
                         }
+                        bookState.push(page);
                     }
-                    DOM.bookPage.innerHTML = tempDiv.innerHTML;
-                    showToast("Libro ricaricato con successo!", "success");
-                } catch(err) { showToast("Magia corrotta. File non valido.", "error"); }
+                    
+                    renderAllPages();
+                    showToast("Progetto ricaricato con successo!", "success");
+                } catch(err) { showToast("Errore caricamento: " + err.message, "error"); }
                 DOM.fileLoadProject.value = ""; 
             };
             reader.readAsText(file);
@@ -1170,20 +819,13 @@ Return ONLY valid JSON. Schema: { "targetCharacter": "The exact single letter/nu
         DOM.btnResetProject.addEventListener('click', () => DOM.resetConfirmModal.classList.add('show'));
         DOM.btnCancelReset.addEventListener('click', () => DOM.resetConfirmModal.classList.remove('show'));
         DOM.btnConfirmReset.addEventListener('click', () => {
-            DOM.bookPage.innerHTML = `
-                <div class="page-text" style="justify-content: center; align-items: center; background: #ffffff;" id="welcomePlaceholder" dir="auto">
-                    <div class="title-page-wrap" style="background: #fdf2f8; border: 12px solid #fbcfe8; border-radius: 60px; margin: 2rem; padding: 4rem; display: flex; flex-direction: column; align-items: center; justify-content: center; height: calc(100% - 4rem); width: calc(100% - 4rem); box-sizing: border-box; box-shadow: inset 0 0 30px rgba(236,72,153,0.15), 0 20px 40px rgba(0,0,0,0.05);">
-                        <h1 class="doc-title" style="font-size: calc(6rem * var(--font-scale)); color: #db2777; text-shadow: 4px 4px 0px #fbcfe8;">My Writing Book</h1>
-                        <p style="font-family: 'Nunito', sans-serif; background: #db2777; color: white; padding: 10px 30px; border-radius: 30px; font-size: calc(16pt * var(--font-scale)); margin-top: 40px; font-weight: 900; outline: none; text-transform: uppercase; letter-spacing: 3px; box-shadow: 0 10px 20px rgba(219,39,119,0.3);">Silent Edition</p>
-                    </div>
-                </div>`;
-            generatedImages = []; globalTocEntries = []; DOM.topicInput.value = ""; DOM.customLessonList.value = "";
-            DOM.aplusBannersContainer.innerHTML = ""; DOM.btnDownloadAPlus.classList.add('hidden');
+            cleanupMemory(); // Resets array, revokes blobs, clears DOM
+            DOM.customRecipeList.value = ""; DOM.visualSetting.value = "Cute Dinosaurs exploring nature"; DOM.visualSetting.dispatchEvent(new Event('change'));
             DOM.progressSection.classList.add('hidden');
             DOM.resetConfirmModal.classList.remove('show');
-            showToast("Tavola pulita! Pronto per nuove magie.", "success");
+            showToast("Progetto azzerato in sicurezza.", "success");
         });
+
     </script>
-
-
-</body></html>
+</body>
+</html>
