@@ -10,8 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
     
-    <!-- Premium Kids Fonts per tutte le lingue -->
-    <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;600;800&family=M+PLUS+Rounded+1c:wght@400;700;900&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;600;800&family=M+PLUS+Rounded+1c:wght@400;700;900&family=Nunito:wght@400;700;900&family=Fredoka+One&display=swap" rel="stylesheet">
     
     <style id="dynamicPrintStyle"></style>
 
@@ -22,6 +21,7 @@
             --safe-margin-px: 75px;
             --font-scale: 1;
             --kids-font: 'Nunito', 'Baloo Bhaijaan 2', 'M PLUS Rounded 1c', sans-serif;
+            --title-font: 'Fredoka One', cursive, sans-serif;
         }
 
         body { 
@@ -31,6 +31,8 @@
             margin: 0; 
             padding: 0; 
             overflow: hidden; 
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
         
         ::-webkit-scrollbar { width: 8px; }
@@ -48,7 +50,6 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Workspace & Toolbar */
         #editorContainer { display: flex; flex-direction: column; flex: 1; height: 100%; background-color: #2c3338; }
         #toolbar { 
             background-color: #1e293b; border-bottom: 1px solid #0f172a; 
@@ -65,14 +66,12 @@
             width: 100%; display: flex; flex-direction: column; align-items: center; gap: 3.5rem; outline: none; counter-reset: pdf-page; 
         }
 
-        /* ---------------------------------------------------------
-           PAGE STRUCTURE
-        --------------------------------------------------------- */
         .page-text, .page-bleed { 
             background-color: white; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 2px 10px rgba(0,0,0,0.3); 
             width: var(--page-width-px); height: var(--page-height-px); 
             position: relative; overflow: hidden; color: #0f172a; box-sizing: border-box; flex-shrink: 0; 
             counter-increment: pdf-page; 
+            page-break-after: always;
         }
         
         .page-text { padding: var(--safe-margin-px); display: flex; flex-direction: column; }
@@ -87,7 +86,6 @@
         .page-text::after { color: #94a3b8; }
         .page-bleed::after { color: #ffffff; text-shadow: 0px 1px 4px rgba(0,0,0,0.9); }
 
-        /* PDF Export specifics */
         .pdf-exporting .page-text, .pdf-exporting .page-bleed {
             box-shadow: none !important;
             border: none !important;
@@ -95,189 +93,210 @@
             transform: scale(1) !important;
         }
 
-        /* ---------------------------------------------------------
-           KIDS PREMIUM STYLES
-        --------------------------------------------------------- */
-        
-        .hero-symbol-overlay {
-            position: absolute; bottom: 5%; right: 5%; width: 250px; height: 250px;
-            background: rgba(255, 255, 255, 0.95); border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 8rem; color: #ec4899; font-weight: 900;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3), inset 0 -5px 15px rgba(0,0,0,0.1);
-            border: 8px solid white; pointer-events: none; z-index: 10;
+        .cover-title-overlay {
+            position: absolute; top: 10%; left: 50%; transform: translateX(-50%);
+            width: 80%; text-align: center; z-index: 10; pointer-events: none;
+            background: rgba(255, 255, 255, 0.9); padding: 20px 40px; border-radius: 30px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2); border: 4px dashed #ec4899;
+        }
+        .cover-title-overlay h1 {
+            font-family: var(--title-font); font-size: 4.5rem; color: #3b82f6;
+            margin: 0; line-height: 1.1; -webkit-text-stroke: 2px #1e40af; text-shadow: 4px 4px 0 #bfdbfe;
+        }
+        .cover-title-overlay p {
+            font-family: var(--kids-font); font-size: 1.5rem; color: #64748b; font-weight: 800; margin-top: 10px;
         }
 
-        .coloring-symbol-overlay {
+        .hero-symbol-centered {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 25rem; color: white; font-weight: 900;
-            -webkit-text-stroke: 8px black; pointer-events: none; z-index: 10;
+            width: 400px; height: 400px;
+            background: rgba(255, 255, 255, 0.95); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16rem; color: #ec4899; font-weight: 900;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 -10px 30px rgba(0,0,0,0.1);
+            border: 15px solid white; pointer-events: none; z-index: 10;
+            backdrop-filter: blur(8px); line-height: 1; font-family: var(--title-font);
+        }
+
+        .coloring-symbol-centered {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 400px; height: 400px;
+            background: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18rem; color: white; -webkit-text-stroke: 10px black; font-weight: 900;
+            border: 15px solid black; pointer-events: none; z-index: 10;
+            line-height: 1; font-family: var(--title-font);
         }
 
         .blank-watermark {
-            position: absolute; bottom: 15px; left: 0; width: 100%;
-            text-align: center; font-size: 8pt; color: #e2e8f0; font-family: var(--kids-font);
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; width: 80%;
         }
+        .blank-watermark h2 { font-size: 2rem; color: #cbd5e1; margin-bottom: 10px; font-family: var(--title-font); }
+        .blank-watermark p { font-size: 1.2rem; color: #e2e8f0; font-weight: bold; }
 
-        .tracing-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: minmax(120px, auto);
-            gap: 20px; width: 100%; height: 100%; padding: 20px 0;
-        }
+        .tracing-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: minmax(130px, auto); gap: 20px; width: 100%; height: 100%; padding: 20px 0; }
+        .tracing-cell { position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+        .tracing-lines { position: absolute; top: 50%; left: 0; width: 100%; height: 80px; transform: translateY(-50%); border-top: 2px solid #3b82f6; border-bottom: 2px solid #3b82f6; z-index: 1; pointer-events: none; }
+        .tracing-lines::after { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 2px; background: repeating-linear-gradient(to right, #ef4444, #ef4444 10px, transparent 10px, transparent 20px); transform: translateY(-50%); }
+        .tracing-char { font-size: 6rem; font-weight: 700; color: transparent; -webkit-text-stroke: 3px #cbd5e1; z-index: 2; position: relative; border-bottom: 3px dashed transparent; }
+        .tracing-char-solid { color: #475569; -webkit-text-stroke: 0; }
+        .tracing-char-guide { color: #f8fafc; -webkit-text-stroke: 2px #94a3b8; }
+        .tracing-phonetic { position: absolute; top: 8px; left: 12px; font-size: 1.5rem; color: #ef4444; font-family: var(--kids-font); font-weight: 900; z-index: 10; opacity: 0.8; }
 
-        .tracing-cell {
-            position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;
-        }
-
-        .tracing-lines {
-            position: absolute; top: 50%; left: 0; width: 100%; height: 80px; transform: translateY(-50%);
-            border-top: 2px solid #3b82f6; border-bottom: 2px solid #3b82f6; z-index: 1; pointer-events: none;
-        }
-
-        .tracing-lines::after {
-            content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 2px;
-            background: repeating-linear-gradient(to right, #ef4444, #ef4444 10px, transparent 10px, transparent 20px);
-            transform: translateY(-50%);
-        }
-
-        .tracing-char {
-            font-size: 6rem; font-weight: 700; color: transparent;
-            -webkit-text-stroke: 2px #cbd5e1; z-index: 2; position: relative;
-        }
-        .tracing-char-solid { color: #94a3b8; -webkit-text-stroke: 0; }
-
-        .memory-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr;
-            gap: 15px; width: 100%; height: 100%;
-        }
-
-        .memory-card {
-            border: 3px dashed #94a3b8; border-radius: 12px; display: flex; align-items: center; justify-content: center;
-            font-size: 6rem; font-weight: 900; color: #3b82f6; position: relative; background: white;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.02);
-        }
-
+        .memory-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; gap: 25px; width: 100%; height: 100%; padding: 20px 0; }
         .memory-card:nth-child(even) { color: #ec4899; }
         .memory-card:nth-child(3n) { color: #10b981; }
         .memory-card:nth-child(4n) { color: #f59e0b; }
+        .scissors-icon { position: absolute; top: -38px; left: -38px; font-size: 2rem; background: transparent; padding: 0; color: #94a3b8; box-shadow: none; z-index: 10; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
-        .scissors-icon {
-            position: absolute; top: -12px; left: -12px; font-size: 1.5rem;
-            background: white; border-radius: 50%; padding: 2px; color: #64748b;
-        }
+        .diploma-border { border: 15px solid #3b82f6; outline: 4px solid #f59e0b; outline-offset: -25px; background: #fffbeb; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; position: relative; }
+        .diploma-title { font-family: var(--title-font); font-size: 4rem; color: #d97706; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
+        .diploma-subtitle { font-size: 1.8rem; color: #475569; margin-bottom: 40px; font-weight: 800; }
+        .diploma-name-line { width: 80%; border-bottom: 4px solid #94a3b8; margin: 20px 0 40px 0; height: 60px; }
+        .diploma-badge { position: absolute; bottom: 50px; right: 50px; font-size: 8rem; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.2)); }
 
-        /* Modals & Overlays */
         .editable-image-container { position: relative; width: 100%; height: 100%; cursor: pointer; border-radius: inherit; }
         .editable-image-container::after { content: '✎ Magia Immagine ✨'; position: absolute; inset: 0; background: rgba(0,0,0,0.6); color: #fbbf24; display: flex; justify-content: center; align-items: center; font-weight: 900; font-size: 1.5rem; opacity: 0; transition: opacity 0.2s; z-index: 20; backdrop-filter: blur(2px); border-radius: inherit; }
         .editable-image-container:hover::after { opacity: 1; }
         
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal.show { display: flex; }
-        .modal-content { background: #1e293b; border: 1px solid #334155; border-radius: 12px; width: 95%; max-width: 1200px; padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); max-height: 95vh; overflow-y: auto; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.9); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .modal.show { display: flex; animation: modalFadeIn 0.3s ease-out forwards; }
+        @keyframes modalFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .modal-content { background: #1e293b; border: 1px solid #334155; border-radius: 16px; width: 95%; max-width: 600px; padding: 32px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
         
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { background: #1e293b; border-left: 4px solid #3b82f6; color: white; padding: 16px 24px; border-radius: 4px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); font-size: 14px; transform: translateX(120%); transition: transform 0.3s ease-out; display: flex; align-items: center; gap: 12px; font-weight: 700; }
+        .toast { background: #1e293b; border-left: 4px solid #3b82f6; color: white; padding: 16px 24px; border-radius: 8px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4); font-size: 14px; transform: translateX(120%); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; gap: 12px; font-weight: 700; }
         .toast.show { transform: translateX(0); }
         .toast.success { border-left-color: #10b981; }
         .toast.warning { border-left-color: #eab308; }
         .toast.error { border-left-color: #ef4444; }
+
+        @media print {
+            body { background: white !important; overflow: visible !important; }
+            header, .w-\[380px\], #toolbar, #toast-container, .modal { display: none !important; }
+            #editorContainer { background: white !important; display: block !important; }
+            #editorWorkspace { background: white !important; padding: 0 !important; display: block !important; overflow: visible !important; }
+            #bookPage { gap: 0 !important; display: block !important; }
+            .page-text, .page-bleed { margin: 0 !important; box-shadow: none !important; border: none !important; }
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden bg-slate-900 text-slate-200">
 
-    <header class="bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-center z-20 shrink-0 shadow-sm">
-        <h1 class="text-xl font-bold font-serif flex items-center gap-3 text-gold-400">
-            <svg class="w-6 h-6 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-            <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-orange-300 font-black tracking-wider">KDP KIDS STUDIO PRO</span>
+    <header class="bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-center z-20 shrink-0 shadow-sm relative">
+        <h1 class="text-2xl font-bold font-serif flex items-center gap-3">
+            <span class="text-3xl">🚀</span>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 font-black tracking-widest uppercase">KDP Kids Studio Pro</span>
         </h1>
-        <div class="flex items-center gap-3">
-            <div id="headerTrimLabel" class="text-[11px] font-bold bg-slate-800 py-1.5 px-3 rounded text-slate-400 border border-slate-700 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> 8.5" x 11" Bleed</div>
-            <button id="savePdfBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-2 px-4 rounded flex items-center gap-2 transition-all shadow-[0_0_10px_rgba(59,130,246,0.3)]">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Esporta PDF (KDP)
+        <div class="flex items-center gap-4">
+            <div id="headerTrimLabel" class="text-xs font-bold bg-slate-800 py-2 px-4 rounded-lg text-slate-300 border border-slate-700 flex items-center gap-2 shadow-inner"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]"></span> 8.5" x 11" Bleed</div>
+            <button id="savePdfBtn" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-black py-2.5 px-6 rounded-lg flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(79,70,229,0.4)] hover:shadow-[0_0_25px_rgba(79,70,229,0.6)] transform hover:-translate-y-0.5">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> 
+                Esporta File KDP
             </button>
         </div>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
-        <div class="w-[360px] bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 z-10">
-            <div class="p-5 overflow-y-auto flex-1 custom-scrollbar">
+        <div class="w-[380px] bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 z-10 shadow-2xl">
+            <div class="p-6 overflow-y-auto flex-1 custom-scrollbar">
                 
-                <div class="mb-4 bg-slate-800/80 p-3 rounded border border-blue-900/50">
-                    <label class="block text-[10px] font-bold text-blue-400 mb-1 uppercase tracking-wider">Gemini API Key</label>
-                    <input type="password" id="apiKeyInput" class="w-full p-2 bg-slate-900 border border-slate-700 rounded text-xs text-slate-200 outline-none focus:border-blue-500" placeholder="Inserisci la chiave API">
+                <div class="mb-5 bg-gradient-to-br from-slate-800 to-slate-800/50 p-4 rounded-xl border border-indigo-500/30 shadow-inner relative overflow-hidden">
+                    <label class="block text-xs font-black text-indigo-400 mb-2 uppercase tracking-widest flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4v-3.25l7.618-7.618A6 6 0 0115 7zm-1.5-1.5a.5.5 0 110-1 .5.5 0 010 1z"></path></svg>
+                        API Key Gemini
+                    </label>
+                    <input type="password" id="apiKeyInput" class="w-full p-3 bg-slate-900/80 border border-slate-600 rounded-lg text-sm text-slate-200 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono placeholder:font-sans" placeholder="Lascia vuoto per test in Canvas">
+                    <p class="text-[10px] text-slate-400 mt-2 font-medium leading-relaxed">
+                        ✨ <strong class="text-indigo-300">Qui dentro:</strong> lascialo vuoto per usare il motore premium integrato.<br>
+                        🌍 <strong class="text-orange-300">Esportando (Vercel/GitHub):</strong> inserisci la tua chiave per farlo funzionare fuori da qui.
+                    </p>
                 </div>
 
-                <div class="bg-slate-800/50 rounded-lg p-5 mb-4 border border-slate-700/50">
-                    <h3 class="text-slate-300 font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wider">
-                        <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                        Impostazioni Libro
+                <div class="bg-slate-800/40 rounded-xl p-5 mb-5 border border-slate-700/50">
+                    <h3 class="text-slate-200 font-black mb-5 flex items-center gap-2 text-sm uppercase tracking-widest">
+                        <span class="text-pink-500 text-lg">🎨</span> Setup Libro
                     </h3>
                     
-                    <div class="mb-4">
-                        <label class="block text-xs font-bold text-slate-400 mb-1.5">Soggetto delle Illustrazioni</label>
-                        <select id="visualSetting" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded outline-none text-sm text-slate-200 cursor-pointer focus:ring-1 focus:ring-pink-500 font-bold">
-                            <option value="Cute Dinosaurs exploring nature">Dinosauri Esploratori</option>
-                            <option value="Magical Unicorns and rainbows">Unicorni e Arcobaleni</option>
-                            <option value="Friendly Space Aliens and planets">Spazio e Alieni</option>
-                            <option value="Cute Woodland Animals">Animali del Bosco</option>
-                            <option value="Magical Fairies in a garden">Fatine Magiche</option>
-                            <option value="Cool Construction Vehicles">Veicoli da Cantiere</option>
-                            <option value="Happy Sea Creatures underwater">Creature Marine</option>
-                            <option value="Custom">Scrivi Tema Personalizzato...</option>
+                    <div class="mb-5">
+                        <label class="block text-xs font-bold text-slate-400 mb-2">Tema delle Illustrazioni</label>
+                        <select id="visualSetting" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-lg outline-none text-sm text-slate-200 cursor-pointer focus:border-pink-500 transition-all font-bold shadow-inner">
+                            <option value="Cute Baby Dinosaurs exploring a magical forest">Dinosauri Esploratori</option>
+                            <option value="Magical Unicorns and rainbows in a sparkly kingdom">Unicorni e Arcobaleni</option>
+                            <option value="Friendly Space Aliens and planets in deep space">Spazio e Alieni Buffi</option>
+                            <option value="Cute Woodland Animals playing together">Animali del Bosco</option>
+                            <option value="Custom">✨ Scrivi Tema Personalizzato...</option>
                         </select>
-                        <textarea id="customVisualSetting" class="w-full h-12 p-3 mt-2 bg-slate-900 border border-slate-700 rounded focus:ring-1 focus:ring-pink-500 outline-none text-sm resize-none text-slate-200 hidden" placeholder="Scrivi il tuo tema (es. Principesse, Gatti pirati...)"></textarea>
+                        <textarea id="customVisualSetting" class="w-full h-16 p-3 mt-3 bg-slate-900 border border-pink-500/50 rounded-lg focus:border-pink-500 outline-none text-sm resize-none text-slate-200 hidden font-medium" placeholder="Es: Gatti pirati che cercano tesori..."></textarea>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="block text-xs font-bold text-slate-400 mb-1.5">Stile Artistico</label>
-                        <select id="artStyle" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded outline-none text-sm text-slate-200 cursor-pointer focus:ring-1 focus:ring-purple-500 font-bold">
+                    <div class="mb-5">
+                        <label class="block text-xs font-bold text-slate-400 mb-2">Stile Artistico</label>
+                        <select id="artStyle" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-lg outline-none text-sm text-slate-200 cursor-pointer focus:border-purple-500 transition-all font-bold shadow-inner">
                             <option value="3D Pixar animation style, highly detailed, vibrant colors, cute and expressive">Pixar / Disney 3D</option>
                             <option value="Studio Ghibli anime style, beautiful watercolor backgrounds, magical atmosphere">Anime (Studio Ghibli)</option>
                             <option value="Classic 2D Disney animation style, smooth lines, nostalgic and charming">Classic 2D Cartoon</option>
-                            <option value="Sanrio Hello Kitty style, flat colors, extremely cute, kawaii, bold outlines">Kawaii (Sanrio Style)</option>
                             <option value="Soft pastel watercolor, dreamy, children's book illustration, gentle">Acquerello Morbido</option>
                         </select>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="block text-xs font-bold text-slate-400 mb-1.5">Lista Simboli (Separate da virgola)</label>
-                        <textarea id="customRecipeList" class="w-full h-16 p-3 bg-slate-900 border border-slate-700 rounded focus:ring-1 focus:ring-blue-500 outline-none text-xl resize-none text-slate-200 font-black" placeholder="A, B, C oppure 1, 2, 3"></textarea>
+                    <div class="mb-5 p-4 bg-pink-950/20 border border-pink-900/30 rounded-lg">
+                        <label class="block text-xs font-bold text-pink-400 mb-2">Lingua / Alfabeto Studiato</label>
+                        <select id="languageSelect" class="w-full p-3 mb-3 bg-slate-900 border border-pink-700/50 rounded-lg outline-none text-sm text-slate-200 cursor-pointer focus:border-pink-500 font-bold shadow-inner">
+                            <option value="inglese" selected>Inglese / Italiano (A, B, C...)</option>
+                            <option value="arabo">Arabo (ا, ب, ت...)</option>
+                            <option value="hiragana">Giapponese Hiragana (あ, い...)</option>
+                            <option value="russo">Russo Cirillico (А, Б, В...)</option>
+                            <option value="numeri">Numeri Base (1, 2, 3...)</option>
+                            <option value="manuale">Personalizzato (Manuale)</option>
+                        </select>
+
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1">Simboli Generati (Modificabili)</label>
+                        <textarea id="customRecipeList" class="w-full h-24 p-3 bg-slate-900 border border-slate-700 rounded-lg focus:border-blue-500 outline-none text-lg resize-none text-slate-200 font-black shadow-inner leading-relaxed">A, B, C, D, E, F, G</textarea>
                     </div>
 
                     <div class="mb-2">
-                        <label class="block text-xs font-bold text-emerald-400 mb-1.5">Gabbia KDP (Trim Size)</label>
-                        <select id="trimSize" class="w-full p-2.5 bg-slate-900 border border-emerald-700/50 rounded outline-none text-sm text-emerald-100 cursor-pointer focus:ring-1 focus:ring-emerald-500 transition-all font-bold">
+                        <label class="block text-xs font-bold text-emerald-400 mb-2">Formato di Stampa (Trim Size)</label>
+                        <select id="trimSize" class="w-full p-3 bg-slate-900 border border-emerald-700/50 rounded-lg outline-none text-sm text-emerald-100 cursor-pointer focus:border-emerald-500 transition-all font-bold shadow-inner">
                             <option value="8.5x11" selected>8.5 x 11 in. (21.59 x 27.94 cm)</option>
+                            <option value="A4">A4 (8.27 x 11.69 in. - 21.0 x 29.7 cm)</option>
                             <option value="8.5x8.5">8.5 x 8.5 in. Quadrato</option>
                             <option value="6x9">6 x 9 in. (15.24 x 22.86 cm)</option>
                         </select>
                     </div>
                 </div>
                 
-                <button id="btnStartAutoPilot" class="w-full bg-gradient-to-r from-pink-600 to-orange-500 hover:from-pink-500 hover:to-orange-400 text-white font-black py-4 rounded-lg shadow-lg transition-all flex justify-center items-center gap-2 mb-4 disabled:opacity-50 text-lg uppercase tracking-wide">
-                    <span id="btnStartText" class="flex items-center gap-2"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> Genera Capolavoro</span>
-                    <span id="btnStartLoader" class="hidden"><div class="loader border-slate-900 border-top-slate-100"></div> Creazione...</span>
+                <button id="btnStartAutoPilot" class="w-full bg-gradient-to-r from-pink-600 via-rose-500 to-orange-500 hover:from-pink-500 hover:via-rose-400 hover:to-orange-400 text-white font-black py-4 rounded-xl shadow-[0_10px_20px_rgba(244,63,94,0.3)] transition-all flex justify-center items-center gap-3 mb-6 disabled:opacity-50 disabled:cursor-not-allowed text-lg uppercase tracking-widest transform hover:-translate-y-1">
+                    <span id="btnStartText" class="flex items-center gap-2">✨ Genera Bestseller</span>
+                    <span id="btnStartLoader" class="hidden"><div class="loader border-slate-900 border-top-white"></div> Creazione Magia...</span>
                 </button>
 
-                <div class="grid grid-cols-2 gap-2 mb-4">
-                    <button id="btnSaveProject" class="bg-slate-800 hover:bg-slate-700 text-blue-400 border border-blue-900/50 font-bold py-2.5 rounded shadow transition-all flex flex-col justify-center items-center gap-1 text-[11px]">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg> Salva File
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <button id="btnSaveProject" class="bg-slate-800 hover:bg-slate-700 text-blue-400 border border-blue-900/50 font-bold py-3 rounded-lg shadow transition-all flex flex-col justify-center items-center gap-1.5 text-xs hover:border-blue-500/50">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg> Salva .KDP
                     </button>
-                    <button id="btnLoadProject" class="bg-slate-800 hover:bg-slate-700 text-yellow-400 border border-yellow-900/50 font-bold py-2.5 rounded shadow transition-all flex flex-col justify-center items-center gap-1 text-[11px]">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> Carica File
+                    <button id="btnLoadProject" class="bg-slate-800 hover:bg-slate-700 text-yellow-400 border border-yellow-900/50 font-bold py-3 rounded-lg shadow transition-all flex flex-col justify-center items-center gap-1.5 text-xs hover:border-yellow-500/50">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> Carica .KDP
                     </button>
                     <input type="file" id="fileLoadProject" accept=".kdp" class="hidden">
-                    <button id="btnResetProject" class="col-span-2 bg-red-900/20 hover:bg-red-900/40 text-red-400 border border-red-900/50 font-bold py-2.5 rounded shadow transition-all flex justify-center items-center gap-2 text-xs">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Nuova Tela Vuota
+                    <button id="btnResetProject" class="col-span-2 bg-slate-900 hover:bg-red-900/30 text-red-400 border border-red-900/30 font-bold py-3 rounded-lg shadow transition-all flex justify-center items-center gap-2 text-xs mt-1 hover:border-red-500/50">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Svuota Progetto
+                    </button>
+                    <button id="btnMakeBilingual" class="col-span-2 bg-indigo-900 hover:bg-indigo-800 text-indigo-200 border border-indigo-700 font-bold py-3 rounded-lg shadow transition-all flex justify-center items-center gap-2 text-xs mt-1">
+                        🌍 Rendi Bilingue (Aggiungi Pronuncia)
                     </button>
                 </div>
 
-                <div id="progressSection" class="flex-col gap-4 bg-slate-900 p-4 rounded border border-slate-800 shadow-inner hidden">
-                    <div class="flex justify-between text-xs mb-1 text-slate-400 font-bold">
-                        <span id="progressStatus" class="truncate max-w-[200px] text-pink-400">Inizializzazione...</span>
-                        <span id="progressCount" class="font-mono"></span>
+                <div id="progressSection" class="flex-col gap-4 bg-slate-950 p-5 rounded-xl border border-slate-800 shadow-inner hidden">
+                    <div class="flex justify-between text-xs mb-2 text-slate-400 font-bold">
+                        <span id="progressStatus" class="truncate max-w-[200px] text-pink-400">Avvio IA...</span>
+                        <span id="progressCount" class="font-mono bg-slate-800 px-2 py-0.5 rounded text-indigo-300">0/0</span>
                     </div>
-                    <div class="w-full bg-slate-800 rounded-full h-2">
-                        <div id="progressBar" class="bg-gradient-to-r from-pink-500 to-orange-400 h-2 rounded-full transition-all duration-300" style="width: 0%;"></div>
+                    <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-700">
+                        <div id="progressBar" class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 h-3 rounded-full transition-all duration-300 relative" style="width: 0%;">
+                            <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -285,31 +304,35 @@
 
         <div id="editorContainer">
             <div id="toolbar">
-                <div class="text-xs text-slate-400 font-bold ml-4">Clicca su qualsiasi immagine per applicare la Magia IA ✨</div>
+                <div class="text-sm text-slate-300 font-medium flex items-center gap-2">
+                    <span class="text-amber-400">💡</span> Suggerimento: Clicca su qualsiasi immagine generata per aprire l'editor magico.
+                </div>
             </div>
 
             <div id="editorWorkspace">
                 <div id="bookPage" contenteditable="false" spellcheck="false">
                     <div class="page-text" style="justify-content: center; align-items: center; background: #f8fafc;" id="welcomePlaceholder">
-                        <h1 style="font-family: var(--kids-font); color: #cbd5e1; font-weight: 900; font-size: 2rem;">Premi "Genera Capolavoro"</h1>
+                        <div class="text-center p-10">
+                            <span class="text-6xl block mb-4">✨</span>
+                            <h1 style="font-family: var(--title-font); color: #94a3b8; font-size: 2.5rem; margin-bottom: 15px;">Tela Vuota</h1>
+                            <p style="color: #cbd5e1; font-weight: 700; font-size: 1.2rem;">Premi "Genera Bestseller" per iniziare la magia.</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modals -->
     <div id="regenModal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
-            <h2 class="text-xl font-black text-white flex items-center gap-2">
-                <svg class="w-6 h-6 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                Magia Immagine
+        <div class="modal-content">
+            <h2 class="text-2xl font-black text-white flex items-center gap-3 border-b border-slate-700 pb-4">
+                <span class="text-3xl">✨</span> Magia Immagine
             </h2>
-            <p class="text-xs text-slate-400 mb-2">Scrivi come vuoi modificare l'immagine (es. "Fai il dinosauro rosso", "Rimuovi lo sfondo").</p>
-            <textarea id="regenPrompt" class="w-full h-24 p-3 bg-slate-900 border border-slate-700 rounded text-sm text-slate-200 outline-none resize-none focus:border-pink-500 font-bold"></textarea>
-            <div class="flex justify-end gap-3 mt-4">
-                <button id="closeRegenModal" class="px-4 py-2 text-slate-400 hover:text-white transition font-bold">Annulla</button>
-                <button id="btnConfirmRegen" class="bg-pink-600 hover:bg-pink-500 text-white font-black py-2 px-6 rounded-lg flex items-center gap-2 shadow-lg">
+            <p class="text-sm text-slate-300 font-medium">Descrivi la modifica da apportare all'immagine selezionata.</p>
+            <textarea id="regenPrompt" class="w-full h-32 p-4 bg-slate-900 border border-slate-600 rounded-lg text-base text-slate-200 outline-none resize-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 font-medium shadow-inner" placeholder="Cosa cambiamo?"></textarea>
+            <div class="flex justify-end gap-3 mt-2">
+                <button id="closeRegenModal" class="px-5 py-2.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition font-bold">Annulla</button>
+                <button id="btnConfirmRegen" class="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-black py-2.5 px-8 rounded-lg flex items-center gap-2 shadow-lg transform hover:-translate-y-0.5 transition-all">
                     <span id="btnRegenText">Applica Magia</span><div id="btnRegenLoader" class="loader hidden"></div>
                 </button>
             </div>
@@ -317,31 +340,33 @@
     </div>
 
     <div id="resetConfirmModal" class="modal">
-        <div class="modal-content" style="max-width: 400px; text-align: center; border-color: #7f1d1d;">
-            <h2 class="text-xl font-black text-red-400 mb-2 flex justify-center items-center gap-2">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg> Attenzione!
+        <div class="modal-content" style="max-width: 450px; text-align: center;">
+            <h2 class="text-2xl font-black text-red-500 mb-2 flex justify-center items-center gap-3">
+                ⚠️ Attenzione!
             </h2>
-            <p class="text-sm text-slate-300 mb-6 font-bold">Sei sicuro di voler azzerare l'intero progetto? Tutte le pagine andranno perse irreversibilmente.</p>
-            <div class="flex justify-center gap-3">
-                <button id="btnCancelReset" class="px-5 py-2.5 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition font-bold text-sm">Annulla</button>
-                <button id="btnConfirmReset" class="bg-red-600 hover:bg-red-500 text-white font-black py-2.5 px-5 rounded shadow flex items-center gap-2 text-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Azzera Tutto
+            <p class="text-base text-slate-300 mb-8 font-medium">Sei sicuro di voler azzerare l'intero progetto? Tutte le pagine andranno perse irreversibilmente.</p>
+            <div class="flex justify-center gap-4">
+                <button id="btnCancelReset" class="px-6 py-3 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition font-bold">Annulla</button>
+                <button id="btnConfirmReset" class="bg-red-600 hover:bg-red-500 text-white font-black py-3 px-6 rounded-lg shadow-lg flex items-center gap-2">
+                    Cancella Tutto
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- PDF Generation Modal (New) -->
     <div id="pdfProgressModal" class="modal">
-        <div class="modal-content" style="max-width: 400px; text-align: center;">
-            <h2 class="text-xl font-black text-blue-400 mb-4 flex justify-center items-center gap-2">
-                <div class="loader"></div> Generazione PDF KDP...
+        <div class="modal-content" style="max-width: 450px; text-align: center;">
+            <h2 class="text-2xl font-black text-indigo-400 mb-4 flex justify-center items-center gap-4">
+                <div class="loader border-indigo-400 border-top-white w-8 h-8"></div> 
+                Render KDP Print...
             </h2>
-            <p class="text-sm text-slate-300 mb-2 font-bold" id="pdfProgressText">Preparazione file (Pagina 0/0)...</p>
-            <div class="w-full bg-slate-800 rounded-full h-2 mb-2">
-                <div id="pdfProgressBar" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%;"></div>
+            <p class="text-base text-slate-300 mb-3 font-bold" id="pdfProgressText">Analisi layout in corso...</p>
+            <div class="w-full bg-slate-900 rounded-full h-3 mb-4 overflow-hidden border border-slate-700">
+                <div id="pdfProgressBar" class="bg-gradient-to-r from-blue-500 to-indigo-500 h-3 rounded-full transition-all duration-300 relative" style="width: 0%;">
+                    <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+                </div>
             </div>
-            <p class="text-[10px] text-slate-500">Non chiudere questa finestra. L'operazione richiede elaborazione nativa ad alta risoluzione.</p>
+            <p class="text-xs text-slate-400 font-medium px-4">Costruzione file PDF ad alta risoluzione (300 DPI eq.). L'operazione può richiedere un po' di tempo.</p>
         </div>
     </div>
 
@@ -353,9 +378,11 @@
         const DOM = {
             btnStart: document.getElementById('btnStartAutoPilot'), btnText: document.getElementById('btnStartText'), btnLoader: document.getElementById('btnStartLoader'),
             customRecipeList: document.getElementById('customRecipeList'), visualSetting: document.getElementById('visualSetting'), customVisualSetting: document.getElementById('customVisualSetting'), artStyle: document.getElementById('artStyle'), trimSize: document.getElementById('trimSize'),
+            languageSelect: document.getElementById('languageSelect'),
             bookPage: document.getElementById('bookPage'), apiKeyInput: document.getElementById('apiKeyInput'),
             savePdfBtn: document.getElementById('savePdfBtn'),
             btnSaveProject: document.getElementById('btnSaveProject'), btnLoadProject: document.getElementById('btnLoadProject'), fileLoadProject: document.getElementById('fileLoadProject'),
+            btnMakeBilingual: document.getElementById('btnMakeBilingual'),
             progressSection: document.getElementById('progressSection'), progressStatus: document.getElementById('progressStatus'), progressCount: document.getElementById('progressCount'), progressBar: document.getElementById('progressBar'),
             toastContainer: document.getElementById('toast-container'),
             regenModal: document.getElementById('regenModal'), closeRegenModal: document.getElementById('closeRegenModal'), btnConfirmRegen: document.getElementById('btnConfirmRegen'), regenPrompt: document.getElementById('regenPrompt'), btnRegenText: document.getElementById('btnRegenText'), btnRegenLoader: document.getElementById('btnRegenLoader'),
@@ -363,11 +390,45 @@
             pdfProgressModal: document.getElementById('pdfProgressModal'), pdfProgressText: document.getElementById('pdfProgressText'), pdfProgressBar: document.getElementById('pdfProgressBar')
         };
 
-        const getAPIKey = () => DOM.apiKeyInput.value.trim() || "";
-        
-        // --- NEW: STATE MANAGEMENT ---
-        let bookState = []; // Mantiene tutti i dati della pagina invece di affidarsi al DOM
+        const alphabets = {
+            arabo: "ا, ب, ت, ث, ج, ح, خ, د, ذ, ر, ز, س, ش, ص, ض, ط, ظ, ع, غ, ف, ق, ك, ل, م, ن, ه, و, ي",
+            hiragana: "あ, い, う, え, お, か, き, く, け, こ, さ, し, す, せ, そ, た, ち, つ, て, と, な, に, ぬ, ね, の, は, ひ, ふ, へ, ほ, ま, み, む, め, も, や, ゆ, よ, ら, り, る, れ, ろ, わ, を, ん",
+            russo: "А, Б, В, Г, Д, Е, Ё, Ж, З, И, Й, К, Л, М, Н, О, П, Р, С, Т, У, Ф, Х, Ц, Ч, Ш, Щ, Ъ, Ы, Ь, Э, Ю, Я",
+            inglese: "A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z",
+            numeri: "1, 2, 3, 4, 5, 6, 7, 8, 9, 10"
+        };
+
+        const langDescriptions = {
+            arabo: "Arabic characters",
+            hiragana: "Japanese Hiragana characters",
+            russo: "Russian Cyrillic alphabet",
+            inglese: "English alphabet letters",
+            numeri: "basic numbers"
+        };
+
+        const langTitles = {
+            arabo: "كتابي",
+            hiragana: "わたしのほん",
+            russo: "Моя книга",
+            inglese: "My Awesome Book",
+            numeri: "My Numbers Book",
+            manuale: "My Activity Book"
+        };
+
+        const phoneticMap = {
+            'arabo': {'ا': 'Alif (A)', 'ب': 'Baa (B)', 'ت': 'Taa (T)', 'ث': 'Thaa (Th)', 'ج': 'Jeem (J)', 'ح': 'Haa (H)', 'خ': 'Khaa (Kh)', 'د': 'Daal (D)', 'ذ': 'Thaal (Th)', 'ر': 'Raa (R)', 'ز': 'Zayn (Z)', 'س': 'Seen (S)', 'ش': 'Sheen (Sh)', 'ص': 'Saad (S)', 'ض': 'Daad (D)', 'ط': 'Taa (T)', 'ظ': 'Zaa (Z)', 'ع': 'Ayn', 'غ': 'Ghayn (Gh)', 'ف': 'Faa (F)', 'ق': 'Qaaf (Q)', 'ك': 'Kaaf (K)', 'ل': 'Laam (L)', 'م': 'Meem (M)', 'ن': 'Noon (N)', 'ه': 'Haa (H)', 'و': 'Waaw (W)', 'ي': 'Yaa (Y)'},
+            'hiragana': {'あ':'A', 'い':'I', 'う':'U', 'え':'E', 'お':'O', 'か':'Ka', 'き':'Ki', 'く':'Ku', 'け':'Ke', 'こ':'Ko', 'さ':'Sa', 'し':'Shi', 'す':'Su', 'せ':'Se', 'そ':'So', 'た':'Ta', 'ち':'Chi', 'つ':'Tsu', 'て':'Te', 'と':'To', 'な':'Na', 'に':'Ni', 'ぬ':'Nu', 'ね':'Ne', 'の':'No', 'は':'Ha', 'ひ':'Hi', 'ふ':'Fu', 'へ':'He', 'ほ':'Ho', 'ま':'Ma', 'み':'Mi', 'む':'Mu', 'め':'Me', 'も':'Mo', 'や':'Ya', 'ゆ':'Yu', 'よ':'Yo', 'ら':'Ra', 'り':'Ri', 'る':'Ru', 'れ':'Re', 'ろ':'Ro', 'わ':'Wa', 'を':'Wo', 'ん':'N'},
+            'russo': {'А':'A', 'Б':'B', 'В':'V', 'Г':'G', 'Д':'D', 'Е':'Ye', 'Ё':'Yo', 'Ж':'Zh', 'З':'Z', 'И':'I', 'Й':'Y', 'К':'K', 'Л':'L', 'М':'M', 'Н':'N', 'О':'O', 'П':'P', 'Р':'R', 'С':'S', 'Т':'T', 'У':'U', 'Ф':'F', 'Х':'Kh', 'Ц':'Ts', 'Ч':'Ch', 'Ш':'Sh', 'Щ':'Shch', 'Ъ':'', 'Ы':'Y', 'Ь':'', 'Э':'E', 'Ю':'Yu', 'Я':'Ya'}
+        };
+
+        let bookState = []; 
         let imageToRegenerateId = null;
+
+        DOM.languageSelect.addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (alphabets[val]) DOM.customRecipeList.value = alphabets[val];
+            else if (val === 'manuale') DOM.customRecipeList.value = "";
+        });
 
         DOM.visualSetting.addEventListener('change', (e) => {
             if (e.target.value === 'Custom') DOM.customVisualSetting.classList.remove('hidden');
@@ -377,11 +438,8 @@
         function showToast(message, type = 'info') {
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            let icon = type === 'success' ? '<svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>' : 
-                       type === 'warning' ? '<svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>' :
-                       type === 'error' ? '<svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>' : 
-                       '<svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
-            toast.innerHTML = `${icon} <span>${message}</span>`;
+            let icon = type === 'success' ? '✅' : type === 'warning' ? '⚠️' : type === 'error' ? '❌' : 'ℹ️';
+            toast.innerHTML = `<span class="text-lg">${icon}</span> <span>${message}</span>`;
             DOM.toastContainer.appendChild(toast);
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 5000);
@@ -396,80 +454,66 @@
         
         const delay = ms => new Promise(res => setTimeout(res, ms));
 
-        const fetchWithRetry = async (urlGenerator, optionsGenerator, maxRetries = 3) => {
-            for (let retries = 0; retries < maxRetries; retries++) {
-                try {
-                    const response = await fetch(urlGenerator(), optionsGenerator());
-                    if (!response.ok) {
-                        const err = await response.json().catch(()=>({}));
-                        if (response.status === 400 && err.error?.message?.includes("API key not valid")) throw new Error("API Key non valida.");
-                        if (response.status === 429 || response.status === 500) throw new Error("Rate limit / Server Error");
-                        throw new Error(`HTTP ${response.status}`);
-                    }
-                    return response;
-                } catch (error) {
-                    if(error.message.includes("API Key") || retries === maxRetries - 1) throw error;
-                    // Exponential backoff
-                    const waitTime = 4000 * (retries + 1);
-                    updateStatus(`Attendere limite API... (${retries+1}/${maxRetries})`);
-                    await delay(waitTime); 
-                }
+        async function callGeminiImage(prompt, aspect, type) {
+            let userKey = DOM.apiKeyInput.value.trim();
+            
+            // Validazione immediata: Se la chiave manca, blocca subito con un errore chiaro.
+            if (!userKey) {
+                throw new Error("🔑 API Key mancante! Inserisci la tua chiave Gemini nel menu a sinistra per generare le immagini.");
             }
-        };
+            
+            let aspectStr = '1:1';
+            if (aspect === '16:9') aspectStr = '16:9';
+            else if (aspect === '3:4') aspectStr = '3:4';
 
-        async function callGeminiImage(prompt, aspect, maxWidth = 1500, quality = 0.85) {
-            const safetyAppend = ". Masterpiece, flawless composition, highly detailed, visually stunning. NO TEXT. NO LETTERS. NO WATERMARK.";
-            const urlGen = () => `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${getAPIKey()}`;
-            const optGen = () => ({
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ role: 'user', parts: [{ text: prompt + safetyAppend }] }], 
-                    generationConfig: { responseModalities: ['IMAGE'], imageConfig: { aspectRatio: aspect } }
-                })
-            });
+            // KDP Optimization Prompt Engineering
+            let finalPrompt = prompt;
+            if(type === 'coloring') {
+                finalPrompt += " Vector line art, pure black and white coloring page frame. Extremely simple thick outlines for toddlers to color. Blank empty white space in the exact center. Absolute pure B&W line art without any grey or shading.";
+            }
+            finalPrompt += " Masterpiece, highly detailed. NO TEXT. NO LETTERS. NO WATERMARK.";
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${userKey}`;
+            
             try {
-                const response = await fetchWithRetry(urlGen, optGen);
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ role: 'user', parts: [{ text: finalPrompt }] }],
+                        generationConfig: { responseModalities: ['IMAGE'], imageConfig: { aspectRatio: aspectStr } }
+                    })
+                });
+
+                if (!response.ok) {
+                    const err = await response.json().catch(()=>({}));
+                    // Intercetta l'errore 401 (Unauthorized) o 403 (Forbidden)
+                    if (response.status === 401 || response.status === 403) {
+                        throw new Error("🔑 API Key non valida o non autorizzata. Verifica di aver inserito la chiave corretta nel pannello a sinistra.");
+                    }
+                    throw new Error(err.error?.message || `Errore API HTTP ${response.status}`);
+                }
+
                 const data = await response.json();
                 const part = data.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
-                if (part) return await processImageToBlobUrl(`data:${part.inlineData.mimeType};base64,${part.inlineData.data}`, maxWidth, quality); 
-            } catch(e) { console.warn("Image gen failed:", e); }
+                
+                if (part) {
+                    // Safe Blob Conversion to prevent Canvas/CORS Tainting for PDF
+                    const b64 = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                    const res = await fetch(b64);
+                    const blob = await res.blob();
+                    return URL.createObjectURL(blob);
+                }
+            } catch(e) {
+                console.error("Gemini Gen fallita:", e);
+                throw e; 
+            }
             return null;
         }
 
-        async function processImageToBlobUrl(base64Str, maxWidth = 2400, quality = 0.85) {
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    let w = img.width, h = img.height;
-                    if (w > maxWidth) { h = Math.round((h * maxWidth) / w); w = maxWidth; }
-                    canvas.width = w; canvas.height = h;
-                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                    canvas.toBlob(blob => { canvas.width = 0; canvas.height = 0; resolve(URL.createObjectURL(blob)); }, 'image/jpeg', quality);
-                };
-                img.onerror = () => resolve(base64Str);
-                img.src = base64Str;
-            });
-        }
-
-        async function blobUrlToBase64(blobUrl) {
-            try {
-                const response = await fetch(blobUrl);
-                const blob = await response.blob();
-                return new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result);
-                    reader.readAsDataURL(blob);
-                });
-            } catch(e) { return blobUrl; } // Fallback if it's already a base64 or external url
-        }
-
-        // --- NEW: MEMORY CLEANUP ---
         function cleanupMemory() {
             bookState.forEach(page => {
-                if (page.imageUrl && page.imageUrl.startsWith('blob:')) {
-                    URL.revokeObjectURL(page.imageUrl);
-                }
+                if (page.imageUrl && page.imageUrl.startsWith('blob:')) URL.revokeObjectURL(page.imageUrl);
             });
             bookState = [];
             DOM.bookPage.innerHTML = '';
@@ -480,6 +524,7 @@
             let widthIn = 8.5, heightIn = 11;
             if(val === '8.5x8.5') { widthIn = 8.5; heightIn = 8.5; }
             else if(val === '6x9') { widthIn = 6; heightIn = 9; }
+            else if(val === 'A4') { widthIn = 8.267; heightIn = 11.692; }
             
             let fontScale = heightIn >= 10 ? 1.0 : (widthIn <= 6 ? 0.75 : 0.85);
 
@@ -488,7 +533,7 @@
             document.documentElement.style.setProperty('--font-scale', fontScale);
 
             document.getElementById('dynamicPrintStyle').innerHTML = `@media print { @page { size: ${widthIn}in ${heightIn}in; margin: 0 !important; } .page-text, .page-bleed { width: ${widthIn}in !important; height: ${heightIn}in !important; overflow: hidden !important; } }`;
-            document.getElementById('headerTrimLabel').innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> ${widthIn}" x ${heightIn}" Bleed`;
+            document.getElementById('headerTrimLabel').innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]"></span> Formato: ${val === 'A4' ? 'A4' : widthIn+'" x '+heightIn+'"'} Bleed`;
             
             return { widthIn, heightIn, aspect: widthIn > heightIn ? '16:9' : (widthIn === heightIn ? '1:1' : '3:4') };
         }
@@ -501,10 +546,16 @@
 
         function renderSinglePageToDOM(page) {
             let html = '';
-            if (page.type === 'hero' || page.type === 'cover' || page.type === 'tools' || page.type === 'pattern' || page.type === 'coloring') {
+            if (page.type === 'cover') {
+                html = `
+                    <div class="page-bleed" id="page-${page.id}" style="position: relative;">
+                        ${wrapImageForEdit(page.imageUrl, page.imagePrompt, page.id, page.type)}
+                    </div>
+                `;
+            } else if (page.type === 'hero' || page.type === 'tools' || page.type === 'coloring' || page.type === 'maze') {
                 let overlay = '';
-                if(page.type === 'hero' && page.symbol) overlay = `<div class="hero-symbol-overlay">${page.symbol}</div>`;
-                if(page.type === 'coloring' && page.symbol) overlay = `<div class="coloring-symbol-overlay">${page.symbol}</div>`;
+                if(page.type === 'hero' && page.symbol) overlay = `<div class="hero-symbol-centered">${page.symbol}</div>`;
+                if((page.type === 'coloring' || page.type === 'maze') && page.symbol) overlay = `<div class="coloring-symbol-centered">${page.symbol}</div>`;
                 
                 html = `
                     <div class="page-bleed" id="page-${page.id}" style="position: relative;">
@@ -516,13 +567,31 @@
                 html = `
                     <div class="page-bleed" id="page-${page.id}">
                         <div style="width: 100%; height: 100%; background: white;"></div>
-                        <div class="blank-watermark">This page is intentionally left blank to protect your masterpiece.</div>
                     </div>
                 `;
             } else if (page.type === 'tracing' || page.type === 'memory-front') {
                 html = `
                     <div class="page-text" id="page-${page.id}" style="background-color: #f8fafc;">
                         ${page.htmlContent}
+                    </div>
+                `;
+            } else if (page.type === 'solid-back') {
+                html = `
+                    <div class="page-bleed" id="page-${page.id}">
+                        <div style="width: 100%; height: 100%; background-color: #6366f1;"></div>
+                    </div>
+                `;
+            } else if (page.type === 'certificate') {
+                html = `
+                    <div class="page-text" id="page-${page.id}" style="background-color: #ffffff;">
+                        <div class="diploma-border">
+                            <h2 class="diploma-title">Certificato di Eccellenza</h2>
+                            <p class="diploma-subtitle">Congratulazioni per aver completato tutte le attività!</p>
+                            <p style="font-size: 1.2rem; color: #64748b;">Questo premio speciale viene conferito a:</p>
+                            <div class="diploma-name-line"></div>
+                            <p style="font-size: 1rem; color: #94a3b8; font-weight: bold;">Data: ___________ &nbsp;&nbsp;&nbsp;&nbsp; Firma: ___________</p>
+                            <div class="diploma-badge">🏆</div>
+                        </div>
                     </div>
                 `;
             }
@@ -532,7 +601,7 @@
         function renderAllPages() {
             DOM.bookPage.innerHTML = '';
             if (bookState.length === 0) {
-                DOM.bookPage.innerHTML = `<div class="page-text" style="justify-content: center; align-items: center; background: #f8fafc;" id="welcomePlaceholder"><h1 style="font-family: var(--kids-font); color: #cbd5e1; font-weight: 900; font-size: 2rem;">Premi "Genera Capolavoro"</h1></div>`;
+                DOM.bookPage.innerHTML = `<div class="page-text" style="justify-content: center; align-items: center; background: #f8fafc;" id="welcomePlaceholder"><div class="text-center p-10"><span class="text-6xl block mb-4">✨</span><h1 style="font-family: var(--title-font); color: #94a3b8; font-size: 2.5rem; margin-bottom: 15px;">Tela Vuota</h1><p style="color: #cbd5e1; font-weight: 700; font-size: 1.2rem;">Premi "Genera Bestseller" per iniziare la magia.</p></div></div>`;
                 return;
             }
             bookState.forEach(renderSinglePageToDOM);
@@ -554,19 +623,17 @@
             const page = bookState[pageIndex];
 
             const modifier = DOM.regenPrompt.value.trim();
-            const finalPrompt = modifier ? `${page.imagePrompt}. User specific modification: ${modifier}` : page.imagePrompt;
+            const finalPrompt = modifier ? `${page.imagePrompt}. Specific user edit: ${modifier}` : page.imagePrompt;
             DOM.btnRegenText.classList.add('hidden'); DOM.btnRegenLoader.classList.remove('hidden'); DOM.btnConfirmRegen.disabled = true;
             try {
                 const layoutInfo = applyLayoutEngine();
-                const newImgUrl = await callGeminiImage(finalPrompt, layoutInfo.aspect, 2400, 0.9);
+                const newImgUrl = await callGeminiImage(finalPrompt, layoutInfo.aspect, page.type);
                 if(newImgUrl) { 
-                    // Revoke old blob to prevent memory leak
                     if(page.imageUrl && page.imageUrl.startsWith('blob:')) URL.revokeObjectURL(page.imageUrl);
                     bookState[pageIndex].imageUrl = newImgUrl;
-                    renderAllPages(); // Re-render state
-                    showToast("Immagine rigenerata!", "success"); 
+                    renderAllPages();
+                    showToast("Immagine aggiornata con successo!", "success"); 
                 }
-                else { showToast("Immagine non disponibile.", "warning"); }
             } catch(e) { showToast(e.message, "error"); } finally {
                 DOM.btnRegenText.classList.remove('hidden'); DOM.btnRegenLoader.classList.add('hidden'); DOM.btnConfirmRegen.disabled = false;
                 DOM.regenModal.classList.remove('show');
@@ -580,108 +647,67 @@
             
             if(!customList) return showToast("Inserisci i simboli (es. A, B, C).", "warning");
             if(!subject) return showToast("Definisci il soggetto (es. Dinosauri).", "warning");
-            if(!getAPIKey()) return showToast("Inserisci la tua Gemini API Key.", "error");
 
             DOM.btnStart.disabled = true; DOM.btnText.classList.add('hidden'); DOM.btnLoader.classList.remove('hidden');
             DOM.progressSection.classList.remove('hidden');
             
-            cleanupMemory(); // Clear old state & free memory
+            cleanupMemory(); 
             const layoutInfo = applyLayoutEngine(); 
             const symbolArray = customList.split(',').map(s => s.trim()).filter(s => s);
 
             const generateId = () => Math.random().toString(36).substr(2, 9);
+            const activeLangDesc = langDescriptions[DOM.languageSelect.value] || "symbols";
 
             try {
-                // 1. FRONT COVER
-                updateStatus(`Generazione Copertina...`, 5);
-                const coverPrompt = "Masterpiece photorealistic photography, overhead angle. Diverse group of children of different ethnicities sitting at a wooden table, happily tracing international alphabets on lined paper, cutting colorful cards with round-tip scissors, playing memory card games, and coloring black and white symbols with crayons. Vibrant, bright natural lighting, highly detailed, joyful, educational setting.";
-                const imgCover = await callGeminiImage(coverPrompt, layoutInfo.aspect) || `https://placehold.co/1200/fecdd3/ec4899?text=Cover`;
-                const pageCover = { id: generateId(), type: 'cover', imagePrompt: coverPrompt, imageUrl: imgCover };
-                bookState.push(pageCover); renderSinglePageToDOM(pageCover);
-                await delay(1500);
-
-                // 2. TOOLS PAGE
-                updateStatus(`Generazione Pagina Strumenti...`, 10);
-                const toolsPrompt = "Masterpiece photorealistic photography, full bleed overhead flatlay on a wooden table. Essential kids school supplies: a wooden pencil, a pink eraser, a set of colorful markers, and child-safe round-tip scissors. Beautifully arranged, bright natural light, highly detailed.";
-                const imgTools = await callGeminiImage(toolsPrompt, layoutInfo.aspect) || `https://placehold.co/1200/dbeafe/3b82f6?text=Tools`;
-                const pageTools = { id: generateId(), type: 'tools', imagePrompt: toolsPrompt, imageUrl: imgTools };
+                // 1. TOOLS PAGE - Fotorealismo
+                updateStatus(`Pagina Materiale...`, 10);
+                const toolsPrompt = "Aesthetic flatlay photography from above on a clean white desk. Premium kids school supplies: wooden pencil, pink eraser, vivid coloring markers, and child-safe scissors. Inspiring, bright natural light.";
+                const imgTools = await callGeminiImage(toolsPrompt, layoutInfo.aspect, 'tools');
+                const pageTools = { id: generateId(), type: 'tools', imagePrompt: toolsPrompt, imageUrl: imgTools || `https://placehold.co/1200/dbeafe/3b82f6?text=Materiale` };
                 bookState.push(pageTools); renderSinglePageToDOM(pageTools);
-                await delay(1500);
+                await delay(500);
 
-                // 3. LESSONS LOOP
+                // 2. LESSONS LOOP (Hero, Tracing, Coloring, Blank, Flashcards, Solid Back, Blank)
                 for(let i = 0; i < symbolArray.length; i++) {
                     const sym = symbolArray[i];
-                    updateStatus(`Creazione Modulo: ${sym}...`, 10 + ((i)/symbolArray.length)*70, i+1, symbolArray.length);
+                    updateStatus(`Modulo: ${sym}...`, 10 + ((i)/symbolArray.length)*70, i+1, symbolArray.length);
                     
                     try {
-                        // Hero
-                        const heroPrompt = `Masterpiece full bleed background, ${subject}, ${style}. Beautiful scenery, highly detailed, vibrant colors. NO TEXT, NO LETTERS.`;
-                        const imgHero = await callGeminiImage(heroPrompt, layoutInfo.aspect) || `https://placehold.co/1200/fef3c7/f59e0b?text=Background`;
-                        const pageHero = { id: generateId(), type: 'hero', symbol: sym, imagePrompt: heroPrompt, imageUrl: imgHero };
+                        const heroPrompt = `Beautiful scenery for ${subject}, ${style}. HIGHLY IMPORTANT: Position ALL characters, animals, and details exclusively along the outer edges (borders). The EXACT CENTER of the image MUST remain COMPLETELY EMPTY and blank to leave space for a massive central symbol. Do not decapitate or cover characters in the middle.`;
+                        const imgHero = await callGeminiImage(heroPrompt, layoutInfo.aspect, 'hero');
+                        const pageHero = { id: generateId(), type: 'hero', symbol: sym, imagePrompt: heroPrompt, imageUrl: imgHero || `https://placehold.co/1200/fef3c7/f59e0b?text=BG` };
                         bookState.push(pageHero); renderSinglePageToDOM(pageHero);
-                        await delay(1500);
+                        await delay(500);
 
-                        // Tracing
                         let gridHtml = '<div class="tracing-grid">';
                         for(let t=0; t<20; t++) {
-                            const charClass = t === 0 ? 'tracing-char tracing-char-solid' : 'tracing-char';
+                            const charClass = t === 0 ? 'tracing-char tracing-char-solid' : (t === 1 ? 'tracing-char tracing-char-guide' : 'tracing-char');
                             gridHtml += `<div class="tracing-cell"><div class="tracing-lines"></div><span class="${charClass}">${sym}</span></div>`;
                         }
                         gridHtml += '</div>';
                         const pageTracing = { id: generateId(), type: 'tracing', htmlContent: gridHtml };
                         bookState.push(pageTracing); renderSinglePageToDOM(pageTracing);
 
-                        // Coloring
-                        updateStatus(`Creazione Cornice da Colorare: ${sym}...`, null, i+1, symbolArray.length);
-                        const coloringPrompt = `Vector line art, pure black and white coloring page frame, ${subject}. Extremely simple thick outlines for toddlers to color. Blank empty white space in the exact center. No shading, no gray, absolute pure B&W line art.`;
-                        const imgColoring = await callGeminiImage(coloringPrompt, layoutInfo.aspect) || `https://placehold.co/1200/ffffff/000000?text=Coloring+Frame`;
-                        const pageColor = { id: generateId(), type: 'coloring', symbol: sym, imagePrompt: coloringPrompt, imageUrl: imgColoring };
+                        updateStatus(`Cornice B&W: ${sym}...`, null, i+1, symbolArray.length);
+                        const coloringPrompt = `Vector line art, pure black and white coloring page. Illustration of ${subject}. HIGHLY IMPORTANT: Position all characters and elements exclusively along the edges forming a frame. The exact center MUST be a massive completely empty white space. Absolute pure B&W line art without any grey or shading. No text.`;
+                        const imgColoring = await callGeminiImage(coloringPrompt, layoutInfo.aspect, 'coloring');
+                        const pageColor = { id: generateId(), type: 'coloring', symbol: sym, imagePrompt: coloringPrompt, imageUrl: imgColoring || `https://placehold.co/1200/ffffff/000000?text=Draw` };
                         bookState.push(pageColor); renderSinglePageToDOM(pageColor);
-                        await delay(1500);
+                        await delay(500);
 
-                        // Blank
                         const pageBlank = { id: generateId(), type: 'blank' };
                         bookState.push(pageBlank); renderSinglePageToDOM(pageBlank);
 
                     } catch(err) { showToast(`Errore su ${sym}: ${err.message}`, "error"); }
                 }
 
-                // 4. MEMORY GAME
-                updateStatus(`Generazione Gioco Memory...`, 85);
-                const allCards = [...symbolArray, ...symbolArray].sort(() => Math.random() - 0.5); 
-                const cardsPerPage = 12; 
-                const totalMemPages = Math.ceil(allCards.length / cardsPerPage);
-
-                for(let m = 0; m < totalMemPages; m++) {
-                    const sIdx = m * cardsPerPage;
-                    const eIdx = Math.min(sIdx + cardsPerPage, allCards.length);
-                    let cardsHtml = '<div class="memory-grid">';
-                    for(let c = sIdx; c < eIdx; c++) {
-                        cardsHtml += `<div class="memory-card"><div class="scissors-icon">✂️</div>${allCards[c]}</div>`;
-                    }
-                    cardsHtml += '</div>';
-                    
-                    const pageMemFront = { id: generateId(), type: 'memory-front', htmlContent: cardsHtml };
-                    bookState.push(pageMemFront); renderSinglePageToDOM(pageMemFront);
-
-                    updateStatus(`Generazione Dorso Carte ${m+1}/${totalMemPages}...`, null);
-                    const patternPrompt = `Seamless dense pattern background, ${subject}, ${style}. Flat vector art, highly decorative, covering entire frame. NO TEXT.`;
-                    const imgPattern = await callGeminiImage(patternPrompt, layoutInfo.aspect) || `https://placehold.co/1200/cbd5e1/475569?text=Pattern`;
-                    const pageMemBack = { id: generateId(), type: 'pattern', imagePrompt: patternPrompt, imageUrl: imgPattern };
-                    bookState.push(pageMemBack); renderSinglePageToDOM(pageMemBack);
-                    await delay(1500);
-
-                    const pageBlankMem = { id: generateId(), type: 'blank' };
-                    bookState.push(pageBlankMem); renderSinglePageToDOM(pageBlankMem);
-                }
-                
                 updateStatus("Capolavoro Completato!", 100);
                 showToast("Libro generato con successo!", "success");
             } catch(e) { 
                 showToast(e.message, "error"); 
             } finally { 
                 DOM.btnStart.disabled = false; DOM.btnText.classList.remove('hidden'); DOM.btnLoader.classList.add('hidden'); 
-                setTimeout(() => DOM.progressSection.classList.add('hidden'), 2000); 
+                setTimeout(() => DOM.progressSection.classList.add('hidden'), 4000); 
             }
         });
 
@@ -690,36 +716,23 @@
             
             DOM.pdfProgressModal.classList.add('show');
             DOM.savePdfBtn.disabled = true;
-            document.body.classList.add('pdf-exporting'); // Rimuove shadow per canvas pulito
+            document.body.classList.add('pdf-exporting'); 
 
             try {
                 const layout = applyLayoutEngine();
-                const pdf = new windowJsPDF({
-                    orientation: layout.widthIn > layout.heightIn ? 'landscape' : 'portrait',
-                    unit: 'in',
-                    format: [layout.widthIn, layout.heightIn]
-                });
-
+                const pdf = new windowJsPDF({ orientation: layout.widthIn > layout.heightIn ? 'landscape' : 'portrait', unit: 'in', format: [layout.widthIn, layout.heightIn] });
                 const pages = Array.from(DOM.bookPage.children);
+                
                 for (let i = 0; i < pages.length; i++) {
-                    DOM.pdfProgressText.textContent = `Analisi Pagina ${i + 1} di ${pages.length}...`;
+                    DOM.pdfProgressText.textContent = `Rendering Pagina ${i + 1} di ${pages.length}...`;
                     DOM.pdfProgressBar.style.width = `${((i)/pages.length)*100}%`;
                     
                     const el = pages[i];
-                    // Temporaneamente porta l'elemento visibile in alto se necessario o assicurati che html2canvas lo catturi
-                    const canvas = await html2canvas(el, { 
-                        scale: 2, // High resolution for print
-                        useCORS: true,
-                        logging: false,
-                        backgroundColor: '#ffffff'
-                    });
-                    
+                    const canvas = await html2canvas(el, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' });
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     
                     if (i > 0) pdf.addPage([layout.widthIn, layout.heightIn]);
                     pdf.addImage(imgData, 'JPEG', 0, 0, layout.widthIn, layout.heightIn);
-                    
-                    // Piccola pausa per non bloccare del tutto il main thread
                     await delay(50);
                 }
 
@@ -727,11 +740,11 @@
                 DOM.pdfProgressBar.style.width = `100%`;
                 await delay(500);
 
-                pdf.save(`KDP_KidsBook_${Date.now()}.pdf`);
-                showToast("PDF Generato con Successo! Pronto per KDP.", "success");
+                pdf.save(`KDP_Masterpiece_${Date.now()}.pdf`);
+                showToast("PDF Generato! Pronto per l'upload su KDP.", "success");
 
             } catch(err) {
-                showToast("Errore durante la generazione del PDF: " + err.message, "error");
+                showToast("Errore durante la generazione PDF: " + err.message, "error");
             } finally {
                 document.body.classList.remove('pdf-exporting');
                 DOM.pdfProgressModal.classList.remove('show');
@@ -739,41 +752,47 @@
             }
         });
 
+        async function blobUrlToBase64(blobUrl) {
+            try {
+                const response = await fetch(blobUrl);
+                const blob = await response.blob();
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+            } catch(e) { return blobUrl; }
+        }
+
         DOM.btnSaveProject.addEventListener('click', async () => {
             if (bookState.length === 0) return showToast("Nessun libro da salvare.", "warning");
             
-            showToast("Preparazione file... Conversione immagini in corso (può richiedere tempo).", "info");
+            showToast("Codifica dati in corso... (può richiedere un minuto).", "info");
             DOM.btnSaveProject.disabled = true;
             DOM.progressSection.classList.remove('hidden');
 
             try {
-                // Batch processing base64 conversion non bloccante
                 const pagesToSave = [];
                 for (let i = 0; i < bookState.length; i++) {
-                    updateStatus("Salvataggio Dati...", ((i)/bookState.length)*100, i+1, bookState.length);
+                    updateStatus("Compressione...", ((i)/bookState.length)*100, i+1, bookState.length);
                     const page = { ...bookState[i] };
-                    if (page.imageUrl && page.imageUrl.startsWith('blob:')) {
-                        page.imageUrl = await blobUrlToBase64(page.imageUrl);
-                    }
+                    if (page.imageUrl && page.imageUrl.startsWith('blob:')) page.imageUrl = await blobUrlToBase64(page.imageUrl);
                     pagesToSave.push(page);
                 }
                 
                 const projectData = {
-                    version: "5.0", // New state-based version
+                    version: "7.0",
                     visualSetting: DOM.visualSetting.value, customVisualSetting: DOM.customVisualSetting.value,
                     artStyle: DOM.artStyle.value, trimSize: DOM.trimSize.value,
-                    customList: DOM.customRecipeList.value, 
+                    customList: DOM.customRecipeList.value, language: DOM.languageSelect.value,
                     bookState: pagesToSave
                 };
                 
                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projectData));
-                const a = document.createElement('a'); a.href = dataStr; a.download = `KDP_Project_${Date.now()}.kdp`; a.click();
+                const a = document.createElement('a'); a.href = dataStr; a.download = `Project_${Date.now()}.kdp`; a.click();
                 showToast("Progetto salvato con successo!", "success");
-            } catch(e) { 
-                showToast("Errore durante il salvataggio: " + e.message, "error"); 
-            } finally { 
-                DOM.btnSaveProject.disabled = false; 
-                setTimeout(() => DOM.progressSection.classList.add('hidden'), 2000);
+            } catch(e) { showToast("Errore durante il salvataggio.", "error"); } finally { 
+                DOM.btnSaveProject.disabled = false; setTimeout(() => DOM.progressSection.classList.add('hidden'), 2000);
             }
         });
 
@@ -783,13 +802,12 @@
             if(!file) return;
             const reader = new FileReader();
             reader.onload = async (event) => {
-                showToast("Caricamento libro...", "info");
+                showToast("Caricamento in corso...", "info");
                 try {
                     const data = JSON.parse(event.target.result);
-                    
-                    // Support legacy version check
-                    if(!data.bookState) throw new Error("Formato progetto obsoleto o non valido.");
+                    if(!data.bookState) throw new Error("File corrotto.");
 
+                    if (data.language) DOM.languageSelect.value = data.language;
                     if (data.visualSetting) { DOM.visualSetting.value = data.visualSetting; DOM.visualSetting.dispatchEvent(new Event('change')); }
                     if (data.customVisualSetting) DOM.customVisualSetting.value = data.customVisualSetting;
                     if (data.artStyle) DOM.artStyle.value = data.artStyle;
@@ -799,18 +817,18 @@
                     applyLayoutEngine();
                     cleanupMemory();
                     
-                    // Restore state converting Base64 back to Blobs for RAM efficiency
                     for(let i=0; i<data.bookState.length; i++) {
                         let page = data.bookState[i];
                         if (page.imageUrl && page.imageUrl.startsWith('data:image')) {
-                            page.imageUrl = await processImageToBlobUrl(page.imageUrl, 2400, 0.9);
+                            const res = await fetch(page.imageUrl);
+                            const blob = await res.blob();
+                            page.imageUrl = URL.createObjectURL(blob);
                         }
                         bookState.push(page);
                     }
-                    
                     renderAllPages();
-                    showToast("Progetto ricaricato con successo!", "success");
-                } catch(err) { showToast("Errore caricamento: " + err.message, "error"); }
+                    showToast("Progetto ripristinato!", "success");
+                } catch(err) { showToast("Errore: " + err.message, "error"); }
                 DOM.fileLoadProject.value = ""; 
             };
             reader.readAsText(file);
@@ -819,12 +837,61 @@
         DOM.btnResetProject.addEventListener('click', () => DOM.resetConfirmModal.classList.add('show'));
         DOM.btnCancelReset.addEventListener('click', () => DOM.resetConfirmModal.classList.remove('show'));
         DOM.btnConfirmReset.addEventListener('click', () => {
-            cleanupMemory(); // Resets array, revokes blobs, clears DOM
-            DOM.customRecipeList.value = ""; DOM.visualSetting.value = "Cute Dinosaurs exploring nature"; DOM.visualSetting.dispatchEvent(new Event('change'));
+            cleanupMemory(); 
+            DOM.languageSelect.value = "inglese"; DOM.languageSelect.dispatchEvent(new Event('change'));
+            DOM.visualSetting.value = "Cute Baby Dinosaurs exploring a magical forest"; DOM.visualSetting.dispatchEvent(new Event('change'));
             DOM.progressSection.classList.add('hidden');
             DOM.resetConfirmModal.classList.remove('show');
-            showToast("Progetto azzerato in sicurezza.", "success");
+            showToast("Tela svuotata.", "success");
         });
+
+        if (DOM.btnMakeBilingual) {
+            DOM.btnMakeBilingual.addEventListener('click', () => {
+                if (bookState.length === 0) return showToast("Genera prima un libro.", "warning");
+                const lang = DOM.languageSelect.value;
+                const pMap = phoneticMap[lang];
+
+                if (!pMap) {
+                    return showToast("Alfabeto non supportato per la pronuncia romanizzata.", "warning");
+                }
+
+                let modified = false;
+                bookState.forEach(page => {
+                    if (page.type === 'tracing') {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(page.htmlContent, 'text/html');
+                        const cells = doc.querySelectorAll('.tracing-cell');
+                        
+                        let sym = '';
+                        const firstCharEl = doc.querySelector('.tracing-char');
+                        if(firstCharEl) sym = firstCharEl.textContent.trim();
+
+                        const phoneticText = pMap[sym] ? pMap[sym] : sym;
+
+                        cells.forEach(cell => {
+                            if (!cell.querySelector('.tracing-phonetic')) {
+                                const phoneticEl = doc.createElement('div');
+                                phoneticEl.className = 'tracing-phonetic';
+                                phoneticEl.textContent = phoneticText;
+                                cell.appendChild(phoneticEl);
+                                modified = true;
+                            }
+                        });
+                        
+                        if (modified) {
+                            page.htmlContent = doc.body.innerHTML;
+                        }
+                    }
+                });
+
+                if (modified) {
+                    renderAllPages();
+                    showToast("Libro aggiornato con pronunce bilingue!", "success");
+                } else {
+                    showToast("Il libro è già bilingue.", "info");
+                }
+            });
+        }
 
     </script>
 </body>
